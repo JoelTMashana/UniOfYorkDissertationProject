@@ -26,7 +26,7 @@ from joel_mashana_dissertation_project import __version__ as release
 # -- Project information -----------------------------------------------------
 
 project = "joel_mashana_dissertation_project"
-author = "Kedro"
+author = "Joel Mashana"
 
 # The short X.Y version.
 version = re.match(r"^([0-9]+\.[0-9]+).*", release).group(1)
