@@ -7,3 +7,19 @@ uk_buyer_payment_behaviour_dataset:
   type: kedro.extras.datasets.pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
 
+example_data:
+  type: MemoryDataSet
+  data: [1,2,3,4,5,6,7,8,9,10]
+
+first_half:
+  type: MemoryDataSet
+
+second_half:
+  type: MemoryDataSet
+
+sum_first_half:
+  type: MemoryDataSet
+
+sum_second_half:
+  type: MemoryDataset
+
