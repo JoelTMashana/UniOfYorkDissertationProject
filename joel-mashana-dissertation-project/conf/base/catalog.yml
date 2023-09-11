@@ -4,5 +4,6 @@
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
 uk_buyer_payment_behaviour_dataset:
-  type: pandas.CSVDataSet
+  type: kedro.extras.datasets.pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
+
