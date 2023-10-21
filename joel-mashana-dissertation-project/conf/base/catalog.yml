@@ -3,23 +3,17 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
-uk_buyer_payment_behaviour_dataset:
+buyer_payment_behaviour:
   type: kedro.extras.datasets.pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
 
-example_data:
-  type: MemoryDataSet
-  data: [1,2,3,4,5,6,7,8,9,10]
+monthly_gdp:
+  type: kedro.extras.datasets.pandas.CSVDataSet
+  data: data/01_raw/monthly-gdp.csv
 
-first_half:
-  type: MemoryDataSet
+inflation_rates:
+  type: kedro.extras.datasets.pandas.CSVDataSet
+  data: data/01_raw/bank-of-england_inflation-rates-uk.csv
 
-second_half:
-  type: MemoryDataSet
 
-sum_first_half:
-  type: MemoryDataSet
-
-sum_second_half:
-  type: MemoryDataset
 
