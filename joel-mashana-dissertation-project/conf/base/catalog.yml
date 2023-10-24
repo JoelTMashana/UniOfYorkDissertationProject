@@ -4,16 +4,20 @@
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
 buyer_payment_behaviour:
-  type: kedro.extras.datasets.pandas.CSVDataSet
+  # type: kedro.extras.datasets.pandas.CSVDataSet
+  type: pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
 
 monthly_gdp:
-  type: kedro.extras.datasets.pandas.CSVDataSet
-  data: data/01_raw/monthly-gdp.csv
+  # type: kedro.extras.datasets.pandas.CSVDataSet
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/monthly-gdp.csv
 
 inflation_rates:
-  type: kedro.extras.datasets.pandas.CSVDataSet
-  data: data/01_raw/bank-of-england_inflation-rates-uk.csv
+  # type: kedro.extras.datasets.pandas.CSVDataSet
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/bank-of-england_inflation-rates-uk.csv
+
 
 
 

@@ -1,17 +1,22 @@
 import pandas as pd
 
 def clean_payment_practise_data(data: pd.DataFrame) -> pd.DataFrame:
-    # Your cleaning logic here
+    # 
     cleaned_data = data
     return cleaned_data
 
 def clean_monthly_gdp_data(data: pd.DataFrame) -> pd.DataFrame:
-    # Your cleaning logic here
+    # Remove the rows CDID, PreUnit, Unit, Release Date, Next Release, Important Notes
+    # Changed column name title to date
     cleaned_data = data
     return cleaned_data
 
 def clean_inflation_rates_data(data: pd.DataFrame) -> pd.DataFrame:
-    # Your cleaning logic here
+    # Format Date Changed column name to 'Date'
+    # Format dates from 16-jun-21 to 2021 JUN - example
+    # Where there are more than one record per month, use the average
+    # -- Consider whats actually more valuable here. The rate or the rate change? 
+    #    if rate change, this is a step for the feature engineering step.
     cleaned_data = data
     return cleaned_data
 
