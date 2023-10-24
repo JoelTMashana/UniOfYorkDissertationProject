@@ -8,6 +8,10 @@ buyer_payment_behaviour:
   type: pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
 
+buyer_payment_practices_out:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/filtered_payment_practices.csv
+
 monthly_gdp:
   # type: kedro.extras.datasets.pandas.CSVDataSet
   type: pandas.CSVDataSet

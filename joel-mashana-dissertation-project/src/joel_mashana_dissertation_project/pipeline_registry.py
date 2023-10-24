@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from kedro.framework.project import find_pipelines
 from kedro.pipeline import Pipeline
-from joel_mashana_dissertation_project.pipelines.data_preprocessing.pipeline import create_pipeline as create_data_preprocessing_pipeline
+from joel_mashana_dissertation_project.pipelines.pipeline import create_pipeline as create_data_preprocessing_pipeline
 
 
 def register_pipelines() -> dict[str, Pipeline]:
