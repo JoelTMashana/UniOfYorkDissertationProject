@@ -40,6 +40,4 @@ def filter_data_on_supplychain_finance(data):
     else:
         print("Not all rows have 'Supply-chain financing offered' set to True")
         return None 
-    
-    
-    return sorted_data  
+
