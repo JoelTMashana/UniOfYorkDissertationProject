@@ -19,9 +19,16 @@ buyer_payment_practices_with_period_col:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/filtered_payment_practices_with_period_col.csv
 
-buyer_payment_practices_payment_redudent_columns_removed:
+buyer_payment_practices_redudent_columns_removed:
   type: pandas.CSVDataSet
-  filepath: data/02_intermediate/buyer_payment_practices_payment_redundent_columns.csv
+  filepath: data/02_intermediate/buyer_payment_practices_redundent_columns.csv
+
+buyer_payment_practices_anonymised:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/buyer_payment_practices_anonymised.csv
+
+
+
 
 monthly_gdp:
   type: pandas.CSVDataSet

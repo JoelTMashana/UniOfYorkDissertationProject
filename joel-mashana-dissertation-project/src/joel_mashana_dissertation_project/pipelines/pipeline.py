@@ -31,6 +31,12 @@ def create_pipeline(**kwargs):
             name="remove_redundant_columns_node"  
     )
     
+    anonymise_data_node = node(
+        anonymise_data,
+        inputs="buyer_payment_practices_payment_redudent_columns_removed",
+        outputs="buyer_payment_practices_anonymised",
+        name="anonymise_data_node"
+    )
 
 
     return Pipeline(
@@ -38,6 +44,7 @@ def create_pipeline(**kwargs):
            filter_buyer_payment_practises_node,
            create_period_column_node,
            extract_payment_periods_node,
-           remove_redundant_columns_node
+           remove_redundant_columns_node,
+           anonymise_data_node
         ]
     )

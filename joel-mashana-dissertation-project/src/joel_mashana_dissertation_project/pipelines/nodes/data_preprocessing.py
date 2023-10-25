@@ -96,7 +96,6 @@ def remove_redundant_columns(data):
     return data
 
 def anonymise_data(data):
-     
     data = data.drop(['Company', 'Company number',  'Report Id'], axis=1)
     return data
 
