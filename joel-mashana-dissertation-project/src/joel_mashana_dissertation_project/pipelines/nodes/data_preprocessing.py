@@ -84,6 +84,10 @@ def create_period_column(data):
     data['Start date'] = pd.to_datetime(data['Start date'], errors='coerce')
     data['End date'] = pd.to_datetime(data['End date'], errors='coerce')
     data['Period'] = data['Start date'].dt.strftime('%Y %b').str.upper() + " - " + data['End date'].dt.strftime('%Y %b').str.upper()
+
+    # Re-order columns to move 'Period' to the leftmost position
+    columns = ['Period'] + [col for col in data if col != 'Period']
+    data = data[columns]
     return data
 
 
