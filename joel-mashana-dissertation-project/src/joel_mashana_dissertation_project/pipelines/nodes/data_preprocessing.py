@@ -44,6 +44,7 @@ def filter_data_on_supplychain_finance(data):
 
 
 def extract_payment_periods(data):
+    # Need to consider flattening and asserting that all periods are unique
     # Filter data for records starting from 2017 onwards
   
     data['Start date'] = pd.to_datetime(data['Start date'], errors='coerce')
@@ -76,4 +77,13 @@ def extract_payment_periods(data):
                 payment_periods[end_year].append(period)
     
     return dict(payment_periods)
+
+
+def create_period_column(data):
+    """Add 'Period' column to the data."""
+    data['Start date'] = pd.to_datetime(data['Start date'], errors='coerce')
+    data['End date'] = pd.to_datetime(data['End date'], errors='coerce')
+    data['Period'] = data['Start date'].dt.strftime('%Y %b').str.upper() + " - " + data['End date'].dt.strftime('%Y %b').str.upper()
+    return data
+
 
