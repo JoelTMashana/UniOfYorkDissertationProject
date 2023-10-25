@@ -9,23 +9,25 @@ def create_pipeline(**kwargs):
                 outputs="buyer_payment_practices_out",
                 name="filter_data_on_supplychain_finance_node"
             )
+    create_period_column_node = node(
+            create_period_column,  
+            inputs="buyer_payment_practices_out",
+            outputs="buyer_payment_practices_with_period_col", 
+            name="create_period_column_node" 
+            )
     extract_payment_periods_node = node(
             func=extract_payment_periods,
             inputs="buyer_payment_practices_out",  
             outputs="buyer_payment_practices_payment_periods_out",
             name="extract_payment_periods_node"
             )
-    create_period_node = node(
-            create_period_column,  
-            inputs="buyer_payment_practices_out",
-            outputs="buyer_payment_practices_with_period_col", 
-            name="create_period_node" 
-            )
+    
 
     return Pipeline(
         [ 
            filter_buyer_payment_practises_node,
+           create_period_column_node,
            extract_payment_periods_node,
-           create_period_node
+           
         ]
     )
