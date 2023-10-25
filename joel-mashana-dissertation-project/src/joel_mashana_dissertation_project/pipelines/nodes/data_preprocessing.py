@@ -29,7 +29,17 @@ def filter_data_on_supplychain_finance(data):
     conditions = "`Supply-chain financing offered` == True"
     filtered_data = filter_rows_based_on_conditions(data, conditions)
 
+    # Assert that all rows in the filtered_data have 'Supply-chain financing offered' set to True
+    condition_met = all(filtered_data['Supply-chain financing offered']), "Not all rows have 'Supply-chain financing offered' set to True"
     # Sort the filtered data by 'Start date'
-    sorted_data = filtered_data.sort_values(by='Start date')
+    
+    if condition_met:
+        sorted_data = filtered_data.sort_values(by='Start date')
+        print("Data filtered such that 'Supply-chain financing offered' is True for each record")
+        return sorted_data
+    else:
+        print("Not all rows have 'Supply-chain financing offered' set to True")
+        return None 
+    
     
     return sorted_data  
