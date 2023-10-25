@@ -3,7 +3,7 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
-buyer_payment_behaviour:
+buyer_payment_behaviour_in:
   # type: kedro.extras.datasets.pandas.CSVDataSet
   type: pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
@@ -11,6 +11,13 @@ buyer_payment_behaviour:
 buyer_payment_practices_out:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/filtered_payment_practices.csv
+
+buyer_payment_practices_payment_periods_out:
+  type: kedro.extras.datasets.json.JSONDataSet
+  filepath: data/02_intermediate/payment_periods.json
+
+
+
 
 monthly_gdp:
   # type: kedro.extras.datasets.pandas.CSVDataSet
