@@ -1,5 +1,7 @@
 from kedro.pipeline import Pipeline, node
-from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column)
+from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
+                                       remove_redundant_columns, anonymise_data
+                                       )
 
 def create_pipeline(**kwargs):
     
@@ -16,18 +18,26 @@ def create_pipeline(**kwargs):
             name="create_period_column_node" 
             )
     extract_payment_periods_node = node(
-            func=extract_payment_periods,
+            extract_payment_periods,
             inputs="buyer_payment_practices_out",  
             outputs="buyer_payment_practices_payment_periods_out",
             name="extract_payment_periods_node"
             )
     
+    remove_redundant_columns_node = node(
+            remove_redundant_columns,
+            inputs="buyer_payment_practices_with_period_col",
+            outputs="buyer_payment_practices_payment_redudent_columns_removed",
+            name="remove_redundant_columns_node"  
+    )
+    
+
 
     return Pipeline(
         [ 
            filter_buyer_payment_practises_node,
            create_period_column_node,
            extract_payment_periods_node,
-           
+           remove_redundant_columns_node
         ]
     )

@@ -91,3 +91,12 @@ def create_period_column(data):
     return data
 
 
+def remove_redundant_columns(data):
+    data = data.drop(['Start date', 'End date',  'Filing date', 'URL'], axis=1)
+    return data
+
+def anonymise_data(data):
+     
+    data = data.drop(['Company', 'Company number',  'Report Id'], axis=1)
+    return data
+
