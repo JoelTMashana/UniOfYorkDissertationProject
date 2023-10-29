@@ -99,3 +99,16 @@ def anonymise_data(data):
     data = data.drop(['Company', 'Company number',  'Report Id'], axis=1)
     return data
 
+def encode_column(data, columns_to_encode):
+    for column_name in columns_to_encode:
+        data[column_name] = data[column_name].apply(lambda x: 1 if x == True or x == 'TRUE' else (0 if x == False or x == 'FALSE' else x))
+
+    return data
+
+
+
+def align_columns(data, column_one, column_two):
+    mask = (data[column_one] == 0) & (data[column_two].isna())
+    data.loc[mask, column_two] = 0
+    return data
+

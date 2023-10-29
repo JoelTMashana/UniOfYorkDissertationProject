@@ -28,6 +28,15 @@ buyer_payment_practices_anonymised:
   filepath: data/02_intermediate/buyer_payment_practices_anonymised.csv
 
 
+buyer_payment_practices_boolean_columns_encoded:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/buyer_payment_practices_boolean_columns_encoded.csv
+
+
+buyer_payment_practices_filtered_encoded_final:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/buyer_payment_practices_filtered_encoded_final.csv
+
 
 
 monthly_gdp:

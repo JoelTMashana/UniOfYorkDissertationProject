@@ -1,0 +1,12 @@
+columns_to_encode: 
+  - "Payments made in the reporting period"
+  - "Participates in payment codes"
+  - "E-Invoicing offered"
+  - "Supply-chain financing offered"
+  - "Policy covers charges for remaining on supplier list"
+  - "Charges have been made for remaining on supplier list"
+  - "Payment terms have changed"
+  - "Suppliers notified of changes"
+
+column_one: "Payment terms have changed"
+column_two: "Suppliers notified of changes"
