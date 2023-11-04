@@ -43,9 +43,11 @@ buyer_payment_practices_filtered_encoded_final:
 ## GDP datasets
 monthly_gdp:
   type: pandas.CSVDataSet
-  filepath: data/01_raw/monthly-gdp.csv
+  filepath: data/01_raw/monthly-gdp-uk.csv
 
-
+monthly_gdp_headers_removed:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/monthly-gdp-uk-headers-removed.csv
 
 ## Inlfation rate datasets
 inflation_rates:

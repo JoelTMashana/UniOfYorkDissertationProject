@@ -104,6 +104,7 @@ def encode_column(data, columns_to_encode):
         data[column_name] = data[column_name].apply(lambda x: 1 if x == True or x == 'TRUE' else (0 if x == False or x == 'FALSE' else x))
 
         # Handle circumstance where column is made up of TRUE or FALSE and empty cells
+        # -- assumption
         if data[column_name].isnull().all() or (data[column_name] == 0).all():
             data[column_name].fillna(1, inplace=True)
 
@@ -125,6 +126,8 @@ def convert_date_format(df, column_name, format='%d-%b-%y'):
     df[column_name] = pd.to_datetime(df[column_name], format=format)
     return df
 
+
+#### Commented out in pipenline therefore not in use for now
 # start_date='2017-01-01'
 def prepare_inflation_data(data, start_date='2017-01-01'):
     data['Date Changed'] = pd.to_datetime(data['Date Changed'], format='%d-%b-%y')
@@ -179,3 +182,21 @@ def get_average_inflation_for_periods(data, periods):
         mean_rates[period] = mean_rate
 
     return mean_rates
+
+
+## Related to GDP 
+def gdpRemoveHeaders(data):
+ 
+    # # Load the data
+    # data = catalog.load("monthly-gdp-uk.csv")
+
+    # Rename 'Title' column to 'Date'
+    data.rename(columns={'Title': 'Date'}, inplace=True)
+
+    # Drop rows before '1997 JAN'
+    index_to_drop = data[data['Date'] == '1997 JAN'].index[0]
+    data_cleaned = data.loc[index_to_drop:].reset_index(drop=True)
+
+    return data_cleaned
+    # # Save the cleaned data if necessary
+    # save_data_to_csv(data_cleaned, "monthly-gdp-uk-headers-removed.csv")
