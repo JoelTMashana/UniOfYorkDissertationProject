@@ -121,6 +121,9 @@ def align_columns(data, column_one, column_two):
     data.loc[mask, column_two] = 0
     return data
 
+
+
+
 ### code related to the inflation rates 
 def convert_date_format(df, column_name, format='%d-%b-%y'):
     df[column_name] = pd.to_datetime(df[column_name], format=format)
@@ -197,5 +200,38 @@ def gdp_remove_headers(data):
     return data_cleaned
 
 
-def calculate_average_gdp_per_payment_period():
-    return 'hehe'
+
+def calculate_gdp_averages_for_period(data, start_date, end_date):
+    # Load the cleaned GDP dataset
+    # data = pd.read_csv(gdp_file_path)
+    
+    data['Date'] = pd.to_datetime(data['Date'], format='%Y %b')
+    
+    period_data = data[(data['Date'] >= start_date) & (data['Date'] <= end_date)]
+    
+    # Calculate the average 
+    averages = period_data.mean().drop('Date')  # Drop the 'Date' column as it's not needed in averages
+    
+    return averages
+
+def process_gdp_averages(data, payment_periods):
+    all_averages = []
+    all_periods = []
+    for year_periods in payment_periods.values():
+        for period in year_periods:
+            start, end = period[1:-1].split(', ')  # Split the period string into start and end dates
+            all_periods.append(f"{start} - {end}")
+            averages_for_period = calculate_gdp_averages_for_period(data, start, end)
+            all_averages.append(averages_for_period)
+    
+    # Convert all averages to a DataFrame
+    averages_df = pd.DataFrame(all_averages)
+    averages_df.insert(0, 'Period', all_periods)
+    print('averages_df')
+    print(averages_df)
+    return averages_df
+
+
+
+
+

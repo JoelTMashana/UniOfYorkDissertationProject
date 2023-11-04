@@ -49,6 +49,10 @@ monthly_gdp_headers_removed:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/monthly-gdp-uk-headers-removed.csv
 
+monthly_gdp_averages: 
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/monthly-gdp-averages.csv
+
 ## Inlfation rate datasets
 inflation_rates:
   type: pandas.CSVDataSet

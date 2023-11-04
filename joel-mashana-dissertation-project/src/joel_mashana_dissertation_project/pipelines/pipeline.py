@@ -2,15 +2,15 @@ from kedro.pipeline import Pipeline, node
 from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
-                                       gdp_remove_headers
+                                       gdp_remove_headers, process_gdp_averages
                                        )
 def create_pipeline(**kwargs):
     
-    filter_buyer_payment_practises_node = node(
+    filter_buyer_payment_practises_on_supply_chain_finance_node = node(
                 filter_data_on_supplychain_finance,
                 inputs="buyer_payment_behaviour_in",
                 outputs="buyer_payment_practices_out",
-                name="filter_data_on_supplychain_finance_node"
+                name="filter_buyer_payment_practises_on_supply_chain_finance_node"
             )
     create_period_column_node = node(
             create_period_column,  
@@ -89,10 +89,20 @@ def create_pipeline(**kwargs):
         name = "monthly_gdp_headers_removed_node"
     )
 
+    calculate_monthly_gdp_averages_node = node(
+        process_gdp_averages,
+        inputs={
+            "data": "monthly_gdp_headers_removed",
+            "payment_periods": "buyer_payment_practices_payment_periods_out"
+        },
+        outputs="monthly_gdp_averages",
+        name = "calculate_monthly_gdp_averages_node"
+    )
+
 
     return Pipeline(
         [ 
-           filter_buyer_payment_practises_node,
+           filter_buyer_payment_practises_on_supply_chain_finance_node,
            create_period_column_node,
            extract_payment_periods_node,
            remove_redundant_columns_node,
@@ -101,6 +111,7 @@ def create_pipeline(**kwargs):
            align_columns_node,
         #    prepare_inflation_data_node,
         #    inflation_rates_averages_node,
-           monthly_gdp_headers_removed_node
+           monthly_gdp_headers_removed_node,
+           calculate_monthly_gdp_averages_node
         ]
     )
