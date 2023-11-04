@@ -2,7 +2,7 @@ from kedro.pipeline import Pipeline, node
 from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
-                                       gdpRemoveHeaders
+                                       gdp_remove_headers
                                        )
 def create_pipeline(**kwargs):
     
@@ -83,7 +83,7 @@ def create_pipeline(**kwargs):
 
 
     monthly_gdp_headers_removed_node = node(
-        gdpRemoveHeaders,
+        gdp_remove_headers,
         inputs="monthly_gdp",
         outputs="monthly_gdp_headers_removed",
         name = "monthly_gdp_headers_removed_node"

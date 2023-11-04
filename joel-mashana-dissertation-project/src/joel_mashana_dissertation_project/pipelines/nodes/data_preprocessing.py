@@ -185,10 +185,7 @@ def get_average_inflation_for_periods(data, periods):
 
 
 ## Related to GDP 
-def gdpRemoveHeaders(data):
- 
-    # # Load the data
-    # data = catalog.load("monthly-gdp-uk.csv")
+def gdp_remove_headers(data):
 
     # Rename 'Title' column to 'Date'
     data.rename(columns={'Title': 'Date'}, inplace=True)
@@ -198,5 +195,7 @@ def gdpRemoveHeaders(data):
     data_cleaned = data.loc[index_to_drop:].reset_index(drop=True)
 
     return data_cleaned
-    # # Save the cleaned data if necessary
-    # save_data_to_csv(data_cleaned, "monthly-gdp-uk-headers-removed.csv")
+
+
+def calculate_average_gdp_per_payment_period():
+    return 'hehe'
