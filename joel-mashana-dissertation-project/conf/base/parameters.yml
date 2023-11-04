@@ -10,3 +10,5 @@ columns_to_encode:
 
 column_one: "Payment terms have changed"
 column_two: "Suppliers notified of changes"
+
+inflation_rate_data_start_date: '2017-01-01'

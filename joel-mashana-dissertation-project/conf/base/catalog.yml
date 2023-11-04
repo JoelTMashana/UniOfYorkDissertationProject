@@ -3,6 +3,8 @@
 # Documentation for this file format can be found in "The Data Catalog"
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
+
+## Buyer payment practises datasets
 buyer_payment_behaviour_in:
   type: pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
@@ -38,15 +40,25 @@ buyer_payment_practices_filtered_encoded_final:
   filepath: data/02_intermediate/buyer_payment_practices_filtered_encoded_final.csv
 
 
-
+## GDP datasets
 monthly_gdp:
   type: pandas.CSVDataSet
   filepath: data/01_raw/monthly-gdp.csv
 
+
+
+## Inlfation rate datasets
 inflation_rates:
   type: pandas.CSVDataSet
   filepath: data/01_raw/bank-of-england_inflation-rates-uk.csv
 
 
+inflation_rates_prepared_for_average_caculation:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/inflation_rates_prepared_for_average.csv
 
+
+inflation_rates_averages_forward_filled:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/inflation_rates_averages_forward_filled.csv
 

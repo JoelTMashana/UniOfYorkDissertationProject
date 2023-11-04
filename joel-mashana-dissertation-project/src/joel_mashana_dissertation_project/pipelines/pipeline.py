@@ -1,6 +1,7 @@
 from kedro.pipeline import Pipeline, node
 from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
-                                       remove_redundant_columns, anonymise_data, encode_column, align_columns
+                                       remove_redundant_columns, anonymise_data, encode_column, align_columns,
+                                       prepare_inflation_data, get_average_inflation_for_periods
                                        )
 def create_pipeline(**kwargs):
     
@@ -59,6 +60,26 @@ def create_pipeline(**kwargs):
         name="align_columns_node"
     )
 
+    prepare_inflation_data_node = node(
+        prepare_inflation_data,
+        inputs={
+            "data": "inflation_rates"
+            # "start_date": "params:inflation_rate_data_start_date"  
+        },
+        outputs="inflation_rates_prepared_for_average_caculation",
+        name="prepare_inflation_data_node"
+    )
+
+    inflation_rates_averages_node = node(
+        get_average_inflation_for_periods,
+        inputs={
+            "data": "inflation_rates_prepared_for_average_caculation",
+            "periods": "buyer_payment_practices_payment_periods_out"
+        },
+        outputs="inflation_rates_averages_forward_filled",
+        name="inflation_rates_averages_node"
+    )
+
 
     return Pipeline(
         [ 
@@ -68,6 +89,8 @@ def create_pipeline(**kwargs):
            remove_redundant_columns_node,
            anonymise_data_node,
            encode_column_payments_made_in_the_reporting_period,
-           align_columns_node
+           align_columns_node,
+        #    prepare_inflation_data_node,
+        #    inflation_rates_averages_node
         ]
     )

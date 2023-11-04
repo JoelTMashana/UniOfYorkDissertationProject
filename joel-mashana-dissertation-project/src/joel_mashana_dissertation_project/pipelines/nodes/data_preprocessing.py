@@ -103,8 +103,16 @@ def encode_column(data, columns_to_encode):
     for column_name in columns_to_encode:
         data[column_name] = data[column_name].apply(lambda x: 1 if x == True or x == 'TRUE' else (0 if x == False or x == 'FALSE' else x))
 
-    return data
+        # Handle circumstance where column is made up of TRUE or FALSE and empty cells
+        if data[column_name].isnull().all() or (data[column_name] == 0).all():
+            data[column_name].fillna(1, inplace=True)
 
+        elif data[column_name].isnull().all() or (data[column_name] == 1).all():
+            data[column_name].fillna(0, inplace=True)
+
+        else:
+            data[column_name].fillna(0, inplace=True)
+    return data
 
 
 def align_columns(data, column_one, column_two):
@@ -112,3 +120,62 @@ def align_columns(data, column_one, column_two):
     data.loc[mask, column_two] = 0
     return data
 
+### code related to the inflation rates 
+def convert_date_format(df, column_name, format='%d-%b-%y'):
+    df[column_name] = pd.to_datetime(df[column_name], format=format)
+    return df
+
+# start_date='2017-01-01'
+def prepare_inflation_data(data, start_date='2017-01-01'):
+    data['Date Changed'] = pd.to_datetime(data['Date Changed'], format='%d-%b-%y')
+
+    # data = data[data['Date Changed'] >= pd.to_datetime(start_date)]
+
+    data.sort_values('Date Changed', inplace=True)
+
+    data.set_index('Date Changed', inplace=True)
+
+    monthly_data = data.resample('MS').ffill()
+
+    monthly_data.reset_index(inplace=True)
+    
+    monthly_data['Date Changed'] = monthly_data['Date Changed'].dt.strftime('%Y-%b').str.upper()
+
+
+    # print ('Monthly Data ')
+    # print(monthly_data)
+    return monthly_data
+
+
+def flatten_periods(periods):
+    flat_data = [period[1:-1].replace(", ", " - ") for period_list in periods.values() for period in period_list]
+    df = pd.DataFrame(flat_data, columns=["Period"])
+    return df
+
+def get_average_inflation_for_periods(data, periods):
+    """
+    Calculate the average inflation rate for a list of periods.
+    """
+    periods_flattened = periods = flatten_periods(periods)
+    print('Periods flattened')
+    print(periods_flattened)
+    mean_rates = {}
+    print(data.columns)
+    for period in periods_flattened['Period']:
+        start_date, end_date = period.split(" - ")
+        start_date = pd.Timestamp(start_date) # Do i need timestamp??
+        end_date = pd.Timestamp(end_date)
+
+        ## Must verify this logic and ensure that it is actually getting means for correct periods
+        ## to me looks like its not actually comparing the period but instead date col only has one date
+        ## possibly just the start date.
+        ## Need to print or output the inflation df being used to verify.
+        ## Print mean rates dict too to see what it looks like.
+        mask = (data["Date Changed"] >= start_date) & (data["Date Changed"] <= end_date)
+        filtered_data = data[mask]
+        
+        mean_rate = filtered_data["Rate"].mean()
+        
+        mean_rates[period] = mean_rate
+
+    return mean_rates
