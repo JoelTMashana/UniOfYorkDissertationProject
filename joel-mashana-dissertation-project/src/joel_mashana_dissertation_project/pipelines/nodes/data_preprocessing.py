@@ -241,3 +241,13 @@ def combine_datasets(payment_practices, gdp_averages):
     combined_df = pd.merge(payment_practices, gdp_averages, on="Period", how="left")
 
     return combined_df
+
+
+def convert_float_columns_to_int(data):
+    """
+    Converts columns with float values to integers if all values in the column are whole numbers.
+    """
+    for column in data.select_dtypes(include=['float']):
+        if (data[column].dropna() % 1 == 0).all():
+            data[column] = data[column].astype(pd.Int64Dtype())
+    return data

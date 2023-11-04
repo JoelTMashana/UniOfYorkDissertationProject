@@ -13,3 +13,17 @@ column_one: "Payment terms have changed"
 column_two: "Suppliers notified of changes"
 
 inflation_rate_data_start_date: '2017-01-01'
+
+columns_to_convert_from_float_to_integers:
+  - "Payments made in the reporting period"
+  - "Average time to pay"
+  - "Shortest (or only) standard payment period"
+  - "Longest standard payment period"
+  - "Maximum contractual payment period"
+  - "Payment terms have changed"
+  - "Suppliers notified of changes"
+  - "Participates in payment codes"
+  - "E-Invoicing offered"
+  - "Supply-chain financing offered"
+  - "Policy covers charges for remaining on supplier list"
+  - "Charges have been made for remaining on supplier list"
