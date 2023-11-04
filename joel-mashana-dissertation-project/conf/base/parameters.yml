@@ -1,3 +1,4 @@
+earliest_year_filter: "2017"
 columns_to_encode: 
   - "Payments made in the reporting period"
   - "Participates in payment codes"

@@ -8,7 +8,10 @@ def create_pipeline(**kwargs):
     
     filter_buyer_payment_practises_on_supply_chain_finance_node = node(
                 filter_data_on_supplychain_finance,
-                inputs="buyer_payment_behaviour_in",
+                inputs= {
+                   "data": "buyer_payment_behaviour_in",
+                   "year": "params:earliest_year_filter"
+                },
                 outputs="buyer_payment_practices_out",
                 name="filter_buyer_payment_practises_on_supply_chain_finance_node"
             )

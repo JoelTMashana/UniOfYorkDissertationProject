@@ -16,7 +16,11 @@ def filter_rows_based_on_conditions(df, conditions):
     """
     return df.query(conditions)
 
-def filter_data_on_supplychain_finance(data):
+def filter_data_from_given_year(df, year):
+    filtered_df = df[df['Start date'] >= f'{year}-01-01'] 
+    return filtered_df
+
+def filter_data_on_supplychain_finance(data, year):
     
     # Convert 'Start date' and 'End date' columns to datetime format by inferring the format and coercing errors
     data['Start date'] = pd.to_datetime(data['Start date'], infer_datetime_format=True, errors='coerce')
@@ -25,6 +29,8 @@ def filter_data_on_supplychain_finance(data):
     # Filter out rows with NaT values in the "Start date" or "End date" columns
     data = data.dropna(subset=['Start date', 'End date'])
 
+    data = filter_data_from_given_year(data, year)
+    
     # Filter the dataset where 'Supply-chain financing offered' is True
     conditions = "`Supply-chain financing offered` == True"
     filtered_data = filter_rows_based_on_conditions(data, conditions)
@@ -202,9 +208,6 @@ def gdp_remove_headers(data):
 
 
 def calculate_gdp_averages_for_period(data, start_date, end_date):
-    # Load the cleaned GDP dataset
-    # data = pd.read_csv(gdp_file_path)
-    
     data['Date'] = pd.to_datetime(data['Date'], format='%Y %b')
     
     period_data = data[(data['Date'] >= start_date) & (data['Date'] <= end_date)]
