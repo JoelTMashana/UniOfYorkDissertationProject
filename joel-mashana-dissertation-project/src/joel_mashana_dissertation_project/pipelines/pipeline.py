@@ -2,7 +2,7 @@ from kedro.pipeline import Pipeline, node
 from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
-                                       gdp_remove_headers, process_gdp_averages
+                                       gdp_remove_headers, process_gdp_averages, combine_datasets
                                        )
 def create_pipeline(**kwargs):
     
@@ -102,6 +102,16 @@ def create_pipeline(**kwargs):
         name = "calculate_monthly_gdp_averages_node"
     )
 
+    combine_datasets_node = node(
+        combine_datasets,
+        inputs = {
+            "payment_practices": "buyer_payment_practices_filtered_encoded_final",
+            "gdp_averages": "monthly_gdp_averages"
+        },
+        outputs="combined_data_set",
+        name = "combine_datasets_node"
+    )
+
 
     return Pipeline(
         [ 
@@ -115,6 +125,7 @@ def create_pipeline(**kwargs):
         #    prepare_inflation_data_node,
         #    inflation_rates_averages_node,
            monthly_gdp_headers_removed_node,
-           calculate_monthly_gdp_averages_node
+           calculate_monthly_gdp_averages_node,
+           combine_datasets_node
         ]
     )

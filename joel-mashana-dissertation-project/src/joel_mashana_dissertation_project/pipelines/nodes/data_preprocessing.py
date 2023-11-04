@@ -235,6 +235,9 @@ def process_gdp_averages(data, payment_periods):
     return averages_df
 
 
+## Concerning data combination
 
+def combine_datasets(payment_practices, gdp_averages):
+    combined_df = pd.merge(payment_practices, gdp_averages, on="Period", how="left")
 
-
+    return combined_df

@@ -68,3 +68,9 @@ inflation_rates_averages_forward_filled:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/inflation_rates_averages_forward_filled.csv
 
+
+# Combined 
+
+combined_data_set:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/combined_dataset.csv
