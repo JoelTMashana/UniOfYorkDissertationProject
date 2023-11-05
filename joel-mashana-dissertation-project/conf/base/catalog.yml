@@ -86,3 +86,16 @@ combined_data_with_appropriate_cols_converted_to_integers:
 combined_data_set_mean_imputed:
    type: pandas.CSVDataSet
    filepath:  data/02_intermediate/combined_data_set_mean_imputed.csv
+
+
+# Outlier Detection and Handling -------------------------
+combined_data_set_invoices_missed_robust_scaled:
+  type: pandas.CSVDataSet
+  filepath:  data/02_intermediate/combined_data_set_invoices_missed_robust_scaled.csv
+
+
+# Dataset with target variable created -------------------
+combined_data_set_with_risk_levels:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/combined_data_set_with_risk_levels.csv
+

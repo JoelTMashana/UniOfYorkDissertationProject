@@ -3,7 +3,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
-                                       mean_imputation
+                                       mean_imputation, robust_scale_column, perform_kmeans_clustering
                                        )
 def create_pipeline(**kwargs):
     
@@ -100,7 +100,7 @@ def create_pipeline(**kwargs):
             "payment_periods": "buyer_payment_practices_payment_periods_out"
         },
         outputs="monthly_gdp_averages",
-        name = "calculate_monthly_gdp_averages_node"
+        name="calculate_monthly_gdp_averages_node"
     )
 
     combine_datasets_node = node(
@@ -129,7 +129,27 @@ def create_pipeline(**kwargs):
         outputs="combined_data_set_mean_imputed",
         name="peform_mean_imputation_on_combined_dataset_node"
     )
-    
+
+    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node = node(
+        robust_scale_column,
+        inputs= {
+            "data": "combined_data_set_mean_imputed",
+            "column_name": "params:columns_to_include_for_robust_scaling",
+        },
+        outputs="combined_data_set_invoices_missed_robust_scaled",
+        name="robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node"
+    )
+
+    determine_and_assign_risk_levels_node = node(
+        perform_kmeans_clustering,
+        inputs = {
+            "data": "combined_data_set_mean_imputed", # Needs to change to scaled data pontentially
+            "column_to_cluster": "params:column_for_clustering"
+        },
+        outputs = "combined_data_set_with_risk_levels",
+        name="etermine_and_assign_risk_levels_node"
+    )
+
     return Pipeline(
         [ 
            filter_buyer_payment_practises_on_supply_chain_finance_node,
@@ -145,6 +165,8 @@ def create_pipeline(**kwargs):
            calculate_monthly_gdp_averages_node,
            combine_datasets_node,
            convert_payment_practise_column_data_to_floats_node,
-           peform_mean_imputation_on_combined_dataset_node 
+           peform_mean_imputation_on_combined_dataset_node,
+        #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
+           determine_and_assign_risk_levels_node
         ]
     )

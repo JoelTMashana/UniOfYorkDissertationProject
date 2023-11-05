@@ -2,7 +2,11 @@ import pandas as pd
 from collections import defaultdict
 from kedro.pipeline import node
 from sklearn.impute import SimpleImputer, KNNImputer
-
+from sklearn.preprocessing import RobustScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+from yellowbrick.cluster import KElbowVisualizer
 
 def filter_rows_based_on_conditions(df, conditions):
     """
@@ -214,7 +218,7 @@ def calculate_gdp_averages_for_period(data, start_date, end_date):
     period_data = data[(data['Date'] >= start_date) & (data['Date'] <= end_date)]
     
     # Calculate the average 
-    averages = period_data.mean().drop('Date')  # Drop the 'Date' column as it's not needed in averages
+    averages = period_data.mean().drop('Date') 
     
     return averages
 
@@ -223,7 +227,7 @@ def process_gdp_averages(data, payment_periods):
     all_periods = []
     for year_periods in payment_periods.values():
         for period in year_periods:
-            start, end = period[1:-1].split(', ')  # Split the period string into start and end dates
+            start, end = period[1:-1].split(', ')  
             all_periods.append(f"{start} - {end}")
             averages_for_period = calculate_gdp_averages_for_period(data, start, end)
             all_averages.append(averages_for_period)
@@ -258,7 +262,7 @@ def convert_float_columns_to_int(data):
 
 ### Handling missing values 
 
-def mean_imputation(data, exclude_column='Period'):
+def mean_imputation(data, exclude_column):
     data_to_impute = data.drop(columns=[exclude_column])
     
     imputer = SimpleImputer(strategy='mean')
@@ -269,7 +273,63 @@ def mean_imputation(data, exclude_column='Period'):
     # Reorder the columns 
     imputed_data = imputed_data[data.columns]
     
+    assert not imputed_data.isnull().any().any(), "There should be no null values after imputation."
+    assert set(imputed_data.columns) == set(data.columns), "The columns should match the original data."
+
     return imputed_data
 
 
+# Consider using K neighbours for 
 
+
+
+## Handling Outliers 
+
+def robust_scale_column(data, column_name):
+    """
+    Apply RobustScaler to a specified column in a DataFrame.
+    """
+    
+    if column_name not in data.columns:
+        raise ValueError(f"Column {column_name} not found in the DataFrame.")
+
+    data_to_scale = data[column_name].values.reshape(-1, 1)
+
+    scaler = RobustScaler()
+
+    scaled_data = scaler.fit_transform(data_to_scale)
+
+    # Assign the scaled data back to df
+    scaled_column_name = f"{column_name}_scaled"
+    data[scaled_column_name] = scaled_data.flatten()
+
+    return data
+
+
+# Related to creating the target variable
+
+def find_optimal_clusters(data, column_to_cluster):
+    feature = data[[column_to_cluster]]
+    model = KMeans(random_state=0)
+    visualiser = KElbowVisualizer(model, k=(2,10), metric='silhouette', timings=False) # May need to use metric for the actual algo too
+    visualiser.fit(feature)
+    visualiser.show()
+
+    return visualiser.elbow_value_
+
+
+def perform_kmeans_clustering(data, column_to_cluster):
+    optimal_number_of_clusters = find_optimal_clusters(data,  column_to_cluster)
+    kmeans = KMeans(n_clusters=optimal_number_of_clusters, random_state=0)
+    data['Clusters'] = kmeans.fit_predict(data[[column_to_cluster]])
+
+    data['Risk Level'] = kmeans.labels_ + 1 # assign risk levels, account for 0 index
+    data = data.drop(['Clusters'], axis=1)
+
+    
+    assert 'Risk Level' in data.columns, "Risk Level column does not exist."
+    assert 'Clusters' not in data.columns, "Clusters column should not exist after dropping it."
+    assert data['Risk Level'].nunique() == optimal_number_of_clusters, (
+        "The number of unique values in the Risk Level column is not equal to the optimal number of clusters."
+    )
+    return data
