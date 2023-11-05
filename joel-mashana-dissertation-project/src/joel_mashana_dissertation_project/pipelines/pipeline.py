@@ -2,7 +2,8 @@ from kedro.pipeline import Pipeline, node
 from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extract_payment_periods, create_period_column,
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
-                                       gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int
+                                       gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
+                                       mean_imputation
                                        )
 def create_pipeline(**kwargs):
     
@@ -119,7 +120,16 @@ def create_pipeline(**kwargs):
         name="convert_payment_practise_column_data_to_floats_node"
     )
 
-
+    peform_mean_imputation_on_combined_dataset_node = node(
+        mean_imputation,
+        inputs= {
+            "data": "combined_data_with_appropriate_cols_converted_to_integers",
+            "exclude_column": "params:columns_to_exclude_for_imputation"
+        },
+        outputs="combined_data_set_mean_imputed",
+        name="peform_mean_imputation_on_combined_dataset_node"
+    )
+    
     return Pipeline(
         [ 
            filter_buyer_payment_practises_on_supply_chain_finance_node,
@@ -134,6 +144,7 @@ def create_pipeline(**kwargs):
            monthly_gdp_headers_removed_node,
            calculate_monthly_gdp_averages_node,
            combine_datasets_node,
-           convert_payment_practise_column_data_to_floats_node 
+           convert_payment_practise_column_data_to_floats_node,
+           peform_mean_imputation_on_combined_dataset_node 
         ]
     )

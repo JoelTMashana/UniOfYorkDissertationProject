@@ -27,3 +27,5 @@ columns_to_convert_from_float_to_integers:
   - "Supply-chain financing offered"
   - "Policy covers charges for remaining on supplier list"
   - "Charges have been made for remaining on supplier list"
+
+columns_to_exclude_for_imputation: 'Period'

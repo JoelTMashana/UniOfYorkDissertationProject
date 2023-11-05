@@ -1,6 +1,7 @@
 import pandas as pd
 from collections import defaultdict
 from kedro.pipeline import node
+from sklearn.impute import SimpleImputer, KNNImputer
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -251,3 +252,24 @@ def convert_float_columns_to_int(data):
         if (data[column].dropna() % 1 == 0).all():
             data[column] = data[column].astype(pd.Int64Dtype())
     return data
+
+
+
+
+### Handling missing values 
+
+def mean_imputation(data, exclude_column='Period'):
+    data_to_impute = data.drop(columns=[exclude_column])
+    
+    imputer = SimpleImputer(strategy='mean')
+    imputed_data = pd.DataFrame(imputer.fit_transform(data_to_impute), columns=data_to_impute.columns)
+    
+    imputed_data[exclude_column] = data[exclude_column].values
+    
+    # Reorder the columns 
+    imputed_data = imputed_data[data.columns]
+    
+    return imputed_data
+
+
+

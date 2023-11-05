@@ -4,7 +4,8 @@
 # Link: https://docs.kedro.org/en/stable/data/data_catalog.html
 
 
-## Buyer payment practises datasets
+## Buyer payment practises datasets ------------------
+
 buyer_payment_behaviour_in:
   type: pandas.CSVDataSet
   filepath: data/01_raw/payment-practices.csv
@@ -40,7 +41,7 @@ buyer_payment_practices_filtered_encoded_final:
   filepath: data/02_intermediate/buyer_payment_practices_filtered_encoded_final.csv
 
 
-## GDP datasets
+## GDP datasets -------------------------------------
 monthly_gdp:
   type: pandas.CSVDataSet
   filepath: data/01_raw/monthly-gdp-uk.csv
@@ -53,7 +54,7 @@ monthly_gdp_averages:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/monthly-gdp-averages.csv
 
-## Inlfation rate datasets
+## Inlfation rate datasets ---------------------------
 inflation_rates:
   type: pandas.CSVDataSet
   filepath: data/01_raw/bank-of-england_inflation-rates-uk.csv
@@ -69,7 +70,7 @@ inflation_rates_averages_forward_filled:
   filepath: data/02_intermediate/inflation_rates_averages_forward_filled.csv
 
 
-# Combined 
+# Combined ---------------------------------------------
 
 combined_data_set:
   type: pandas.CSVDataSet
@@ -78,3 +79,10 @@ combined_data_set:
 combined_data_with_appropriate_cols_converted_to_integers:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/combined_data_with_appropriate_cols_converted_to_integers.csv
+
+
+# Missing values imputation -----------------------------
+
+combined_data_set_mean_imputed:
+   type: pandas.CSVDataSet
+   filepath:  data/02_intermediate/combined_data_set_mean_imputed.csv
