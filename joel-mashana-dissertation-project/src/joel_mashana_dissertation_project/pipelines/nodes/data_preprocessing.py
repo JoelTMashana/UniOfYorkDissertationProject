@@ -386,8 +386,6 @@ def train_decision_tree(data, target_column):
 
 ### Evaluation ##########################################################
 
-
-
 def calculate_accuracy(y_test, y_pred):
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy}")
@@ -402,7 +400,6 @@ def store_and_print_classification_report(y_test, y_pred):
 
 def get_confusion_matrix(y_test, y_pred):
     return confusion_matrix(y_test, y_pred)
-
 
 
 def calculate_f1_score(y_test, y_pred):
@@ -426,3 +423,4 @@ def print_auc(model, X_test, y_test):
     roc_auc = roc_auc_score(y_test, probas)
 
     print(f"AUC: {roc_auc}")
+    return roc_auc
