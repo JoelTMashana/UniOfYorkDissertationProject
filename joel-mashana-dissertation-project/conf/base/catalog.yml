@@ -108,8 +108,17 @@ combined_data_set_pca_applied:
   filepath: data/02_intermediate/combined_data_set_pca_applied.csv
 
 
-### ML Algorithms
+# Models ------------------------------------------------
 decision_tree_model:
   type: pickle.PickleDataSet
   filepath: data/06_models/decision_tree_model.pkl
+  versioned: true 
+
+
+# Model outputs ------------------------------------------------------
+my_trained_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/my_model.pkl
+
+
 

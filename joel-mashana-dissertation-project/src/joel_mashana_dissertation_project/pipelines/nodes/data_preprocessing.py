@@ -13,17 +13,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix
 
 def filter_rows_based_on_conditions(df, conditions):
     """
     Filter rows in a dataframe based on the given conditions.
-
-    Parameters:
-    - df (DataFrame): The input dataframe.
-    - conditions (str): A string that specifies the conditions for filtering.
-
-    Returns:
-    - DataFrame: A filtered dataframe.
     """
     return df.query(conditions)
 
@@ -381,17 +377,43 @@ def train_decision_tree(data, target_column):
 
     predictions = decision_tree.predict(X_test)
 
-    accuracy = accuracy_score(y_test, predictions)
-    report = classification_report(y_test, predictions)
-    
-    print(f"Accuracy: {accuracy}")
-    print(f"Classification Report:\n{report}")
+    calculate_accuracy(y_test, predictions)
+    store_and_print_classification_report(y_test, predictions)
 
     print_auc(decision_tree, X_test, y_test)
     return decision_tree
 
 
-### Evaluation 
+### Evaluation ##########################################################
+
+
+
+def calculate_accuracy(y_test, y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy}")
+    return accuracy
+
+
+def store_and_print_classification_report(y_test, y_pred):
+    report = classification_report(y_test, y_pred)
+    print(f"Classification Report:\n{report}")
+    return report
+
+
+def get_confusion_matrix(y_test, y_pred):
+    return confusion_matrix(y_test, y_pred)
+
+
+
+def calculate_f1_score(y_test, y_pred):
+    return f1_score(y_test, y_pred)
+
+
+def calculate_precision(y_test, y_pred):
+    return precision_score(y_test, y_pred)
+
+def calculate_recall(y_test, y_pred):
+    return recall_score(y_test, y_pred)
 
 
 def print_auc(model, X_test, y_test):
