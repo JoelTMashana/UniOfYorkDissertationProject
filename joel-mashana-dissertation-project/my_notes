@@ -1,26 +1,16 @@
-Basic structure of combined DF - pre cleaning
-Shape (5636, 224) - high dimensionality
-Data types Period = Object, rest = float64
+### Experiments
 
+1. Decision tree algorithms without PCA
+Accuracy scores were perfect suggesting overfitting despite pruning.
+2. Decision Tree algorithm with PCA
+Score looks more realistic, reduced to 3 PCA's
+    Accuracy: 0.9485815602836879
+    Classification Report:
+                precision    recall  f1-score   support
 
-'Average time to pay',
-    '% Invoices paid within 30 days',
-    '% Invoices paid between 31 and 60 days',
-    '% Invoices paid later than 60 days',
-The cols all have missing data across the same rows 
-may need to check if this concides with missing data in this col ''% Invoices not paid within agreed terms''
-before my encoding operation
-- Answer: it doesnt
-- need to consider removing those rows. alternativetly, could use mean imputation but would need to consider the best way to do that
-for example it might be best to only use means for that those specific companies insetead of means of the entire col. 
-big question is, is that worth it for just 8 rows of data. Could be a couple hours worth of work.
+            1       0.96      0.97      0.97       828
+            2       0.92      0.88      0.90       300
 
-
-The bools are from the 'Payments made in the reporting period'
-2018 JUL - 2018 DEC	12570	AMEY HOLDINGS LIMITED	05438319	FALSE
-2018 JUL - 2018 DEC	12404	MANN + HUMMEL (UK) LIMITED	03152081	TRUE
-2018 JUL - 2018 DEC	12567	AMEY UK PLC	04736639	FALSE
-Suggesting that the col should not simply be encoded in oppoisites where data are missing
-therefore it is not certain that where there is no data the opposite bool can be assumed
-
-Longest standard payment period - has 1600 missing values.
+        accuracy                           0.95      1128
+    macro avg       0.94      0.93      0.93      1128
+    weighted avg       0.95      0.95      0.95      1128

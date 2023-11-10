@@ -7,6 +7,11 @@ from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import seaborn as sns
 from yellowbrick.cluster import KElbowVisualizer
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
 
 def filter_rows_based_on_conditions(df, conditions):
     """
@@ -313,7 +318,7 @@ def find_optimal_clusters(data, column_to_cluster):
     model = KMeans(random_state=0)
     visualiser = KElbowVisualizer(model, k=(2,10), metric='silhouette', timings=False) # May need to use metric for the actual algo too
     visualiser.fit(feature)
-    visualiser.show()
+    # visualiser.show()
 
     return visualiser.elbow_value_
 
@@ -333,3 +338,52 @@ def perform_kmeans_clustering(data, column_to_cluster):
         "The number of unique values in the Risk Level column is not equal to the optimal number of clusters."
     )
     return data
+
+
+### Dimensionality reduction 
+
+def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
+    X = data.drop(columns=[target_column])
+    X=  data.drop(columns=[columns_to_exclude])
+    y = data[target_column]
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    pca = PCA(n_components=n_components)
+    X_pca = pca.fit_transform(X_scaled)
+
+     # Combine the principal components with the target variable
+    principal_components = pd.DataFrame(X_pca)
+    principal_components[target_column] = y
+    
+    return principal_components
+
+
+
+
+###### ML Algorithms
+
+
+
+def train_decision_tree(data, target_column):
+    
+    X = data.drop(target_column, axis=1)
+    # X = data.drop(columns_to_exclude, axis=1)
+    y = data[target_column]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    decision_tree = DecisionTreeClassifier(random_state=42)
+
+    decision_tree.fit(X_train, y_train)
+
+    predictions = decision_tree.predict(X_test)
+
+    accuracy = accuracy_score(y_test, predictions)
+    report = classification_report(y_test, predictions)
+    
+    print(f"Accuracy: {accuracy}")
+    print(f"Classification Report:\n{report}")
+
+    return decision_tree

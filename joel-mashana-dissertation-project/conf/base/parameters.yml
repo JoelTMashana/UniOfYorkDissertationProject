@@ -32,3 +32,9 @@ columns_to_exclude_for_imputation: 'Period'
 
 columns_to_include_for_robust_scaling: '% Invoices not paid within agreed terms'
 column_for_clustering: '% Invoices not paid within agreed terms'
+number_of_components_to_retain: 3
+
+### ML
+
+target: 'Risk Level'
+columns_to_exclude: 'Period'

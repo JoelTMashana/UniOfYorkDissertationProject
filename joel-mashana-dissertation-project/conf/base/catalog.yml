@@ -99,3 +99,17 @@ combined_data_set_with_risk_levels:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/combined_data_set_with_risk_levels.csv
 
+
+
+# PCA -------------------
+
+combined_data_set_pca_applied:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/combined_data_set_pca_applied.csv
+
+
+### ML Algorithms
+decision_tree_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/decision_tree_model.pkl
+
