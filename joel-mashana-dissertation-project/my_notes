@@ -14,3 +14,8 @@ Score looks more realistic, reduced to 3 PCA's
         accuracy                           0.95      1128
     macro avg       0.94      0.93      0.93      1128
     weighted avg       0.95      0.95      0.95      1128
+
+--- 828 vs 300, class imbalance, suggests a need for difference approach
+potential justification for using AUC and ROC for analysis. 
+3. AUC: 0.9267149758454105 suggests that the model has a strong ability to distinguish 
+betwen the positive and negative classes.

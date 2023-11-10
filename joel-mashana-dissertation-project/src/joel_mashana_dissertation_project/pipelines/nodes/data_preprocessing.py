@@ -12,6 +12,7 @@ from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import roc_auc_score
 
 def filter_rows_based_on_conditions(df, conditions):
     """
@@ -386,4 +387,20 @@ def train_decision_tree(data, target_column):
     print(f"Accuracy: {accuracy}")
     print(f"Classification Report:\n{report}")
 
+    print_auc(decision_tree, X_test, y_test)
     return decision_tree
+
+
+### Evaluation 
+
+
+def print_auc(model, X_test, y_test):
+    """
+    Prints the AUC for the given model and test data.
+    """
+    # probabilities for the positive class
+    probas = model.predict_proba(X_test)[:, 1]
+
+    roc_auc = roc_auc_score(y_test, probas)
+
+    print(f"AUC: {roc_auc}")
