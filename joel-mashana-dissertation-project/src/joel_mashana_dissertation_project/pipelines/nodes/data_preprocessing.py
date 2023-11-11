@@ -16,6 +16,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LogisticRegression
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -363,7 +364,7 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
 # ###### ML Algorithms
 
 
-def train_decision_tree(data, target_column):
+def train_decision_tree(data, target_column, model_name):
     
     X = data.drop(target_column, axis=1)
     # X = data.drop(columns_to_exclude, axis=1)
@@ -377,6 +378,8 @@ def train_decision_tree(data, target_column):
 
     predictions = decision_tree.predict(X_test)
 
+
+    print_model_name(model_name)
     calculate_accuracy(y_test, predictions)
     store_and_print_classification_report(y_test, predictions)
 
@@ -384,9 +387,34 @@ def train_decision_tree(data, target_column):
     return decision_tree
 
 
+def train_logistic_regression(data, target_column):
+    X = data.drop(target_column, axis=1)
+    y = data[target_column]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    logistic_regression_model = LogisticRegression()
+
+
+    logistic_regression_model.fit(X_train, y_train)
+
+    # Predicting on the test data
+    y_pred = logistic_regression_model.predict(X_test)
+
+    calculate_accuracy(y_test, y_pred)
+    store_and_print_classification_report(y_test, y_pred)
+    print_auc(logistic_regression_model, X_test, y_test)
+
+    return logistic_regression_model
+
+
 ### Evaluation ##########################################################
 
+def print_model_name(model_name):
+    print(f"Evaluation Metrics: {model_name}")
+
 def calculate_accuracy(y_test, y_pred):
+    
+    
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy}")
     return accuracy

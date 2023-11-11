@@ -3,7 +3,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        remove_redundant_columns, anonymise_data, encode_column, align_columns,
                                        prepare_inflation_data, get_average_inflation_for_periods,
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
-                                       mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca
+                                       mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
+                                       train_decision_tree, train_logistic_regression
                                        )
 def create_pipeline(**kwargs):
     
@@ -162,6 +163,16 @@ def create_pipeline(**kwargs):
         name="apply_principle_component_analysis_node"
     )
 
+    execute_decision_tree_node = node(
+        train_decision_tree,
+        inputs={
+            "data": "combined_data_set_pca_applied",
+            "target_column": "params:target",
+            "model_name":  "params:decision_tree"
+        },
+        outputs="decision_tree_model",
+        name="execute_decision_tree_node"
+    )
     
 
     return Pipeline(
@@ -182,6 +193,9 @@ def create_pipeline(**kwargs):
            peform_mean_imputation_on_combined_dataset_node,
         #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
            determine_and_assign_risk_levels_node,
-           apply_principle_component_analysis_node
+           apply_principle_component_analysis_node,
+
+           ### Excute models
+           execute_decision_tree_node
         ]
     )

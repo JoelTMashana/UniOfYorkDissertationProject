@@ -114,11 +114,20 @@ decision_tree_model:
   filepath: data/06_models/decision_tree_model.pkl
   versioned: true 
 
+logistic_regression_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/logistic_regression_model.pkl
+  versioned: true
+
 
 # Model outputs ------------------------------------------------------
 decision_tree_performance_metrics:
   type: pandas.CSVDataSet
-  filepath: data/07_model_output/performance_metrics.csv
+  filepath: data/07_model_output/decision_tree_performance_metrics.csv
+
+logistic_regression_performance_metrics:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_performance_metrics.csv
 
 
 
