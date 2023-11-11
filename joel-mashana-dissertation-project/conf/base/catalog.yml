@@ -116,9 +116,9 @@ decision_tree_model:
 
 
 # Model outputs ------------------------------------------------------
-my_trained_model:
-  type: pickle.PickleDataSet
-  filepath: data/06_models/my_model.pkl
+decision_tree_performance_metrics:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/performance_metrics.csv
 
 
 

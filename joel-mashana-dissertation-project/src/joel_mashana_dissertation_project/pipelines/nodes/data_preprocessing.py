@@ -397,20 +397,25 @@ def store_and_print_classification_report(y_test, y_pred):
     print(f"Classification Report:\n{report}")
     return report
 
+def print_and_return_confusion_matrix(y_test, y_pred):
+    matrix = confusion_matrix(y_test, y_pred)
+    print(f"Confusion Matrix:\n{matrix}")
+    return matrix
 
-def get_confusion_matrix(y_test, y_pred):
-    return confusion_matrix(y_test, y_pred)
+def print_and_return_f1_score(y_test, y_pred):
+    f1 = f1_score(y_test, y_pred)
+    print(f"F1 Score: {f1}")
+    return f1
 
+def print_and_return_precision(y_test, y_pred):
+    precision = precision_score(y_test, y_pred)
+    print(f"Precision: {precision}")
+    return precision
 
-def calculate_f1_score(y_test, y_pred):
-    return f1_score(y_test, y_pred)
-
-
-def calculate_precision(y_test, y_pred):
-    return precision_score(y_test, y_pred)
-
-def calculate_recall(y_test, y_pred):
-    return recall_score(y_test, y_pred)
+def print_and_return_recall(y_test, y_pred):
+    recall = recall_score(y_test, y_pred)
+    print(f"Recall: {recall}")
+    return recall
 
 
 def print_auc(model, X_test, y_test):
