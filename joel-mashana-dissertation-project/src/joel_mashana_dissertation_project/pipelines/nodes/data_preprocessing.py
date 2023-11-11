@@ -17,6 +17,7 @@ from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -408,14 +409,32 @@ def train_logistic_regression(data, target_column, model_name):
     return logistic_regression_model
 
 
+def train_svm(data, target_column, model_name):
+    X = data.drop(target_column, axis=1)
+    y = data[target_column]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    svm_model = SVC(probability=True,random_state=42)
+
+    svm_model.fit(X_train, y_train)
+
+    y_pred = svm_model.predict(X_test)
+
+    print_model_name(model_name)
+    calculate_accuracy(y_test, y_pred)
+    store_and_print_classification_report(y_test, y_pred)
+    print_auc(svm_model, X_test, y_test)
+
+    return svm_model
+
+
+
 ### Evaluation ##########################################################
 
 def print_model_name(model_name):
     print(f"Evaluation Metrics: {model_name}")
 
 def calculate_accuracy(y_test, y_pred):
-    
-    
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy}")
     return accuracy

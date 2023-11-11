@@ -44,3 +44,4 @@ columns_to_exclude: 'Period'
 # Model names
 decision_tree: 'Decision Tree'
 logistic_regression: 'Logistic Regression'
+svm: 'Support Vector Machine'

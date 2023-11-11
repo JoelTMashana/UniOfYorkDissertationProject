@@ -119,6 +119,11 @@ logistic_regression_model:
   filepath: data/06_models/logistic_regression_model.pkl
   versioned: true
 
+svm_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/svm_model.pkl
+  versioned: true
+
 
 # Model outputs ------------------------------------------------------
 decision_tree_performance_metrics:
