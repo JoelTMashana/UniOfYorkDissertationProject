@@ -4,7 +4,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        prepare_inflation_data, get_average_inflation_for_periods,
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
-                                       train_decision_tree, train_logistic_regression, train_svm
+                                       train_decision_tree, train_logistic_regression, train_svm, train_ann
                                        )
 def create_pipeline(**kwargs):
     
@@ -194,7 +194,20 @@ def create_pipeline(**kwargs):
     },
     outputs="svm_model",
     name="execute_svm_node"
-)
+    )
+
+    execute_ann_node = node(
+        train_ann,
+        inputs={
+            "data": "combined_data_set_with_risk_levels",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude",
+            "model_name":  "params:ann"
+        },
+        outputs="ann_model",
+        name="execute_ann_node"
+    )
+
 
     
 
@@ -221,6 +234,7 @@ def create_pipeline(**kwargs):
            ### Excute models
            execute_decision_tree_node,
            execute_logistic_regression_node,
-           execute_svm_node
+           execute_svm_node,
+           execute_ann_node
         ]
     )

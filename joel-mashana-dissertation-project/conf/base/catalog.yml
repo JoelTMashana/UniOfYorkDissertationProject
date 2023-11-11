@@ -124,6 +124,11 @@ svm_model:
   filepath: data/06_models/svm_model.pkl
   versioned: true
 
+ann_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/ann_model.pkl
+  versioned: true
+
 
 # Model outputs ------------------------------------------------------
 decision_tree_performance_metrics:

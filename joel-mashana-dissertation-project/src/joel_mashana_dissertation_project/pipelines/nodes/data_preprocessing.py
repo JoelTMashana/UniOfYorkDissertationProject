@@ -18,6 +18,9 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
+import tensorflow 
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -426,6 +429,30 @@ def train_svm(data, target_column, model_name):
     print_auc(svm_model, X_test, y_test)
 
     return svm_model
+
+def train_ann(data, target_column, columns_to_exclude, model_name):
+    X = data.drop(target_column, axis=1)
+    X=  data.drop(columns=[columns_to_exclude])
+    y = data[target_column]
+
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    model = Sequential([
+        Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
+        Dense(64, activation='relu'),
+        Dense(32, activation='relu'),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    model.fit(X_train, y_train, epochs=10, batch_size=32)
+
+    loss, accuracy = model.evaluate(X_test, y_test)
+    print(f"Loss: {loss}, Accuracy: {accuracy}")
+
+    return model
 
 
 
