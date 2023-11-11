@@ -17,6 +17,7 @@ from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 
+
 def filter_rows_based_on_conditions(df, conditions):
     """
     Filter rows in a dataframe based on the given conditions.
@@ -359,8 +360,7 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
 
 
 
-###### ML Algorithms
-
+# ###### ML Algorithms
 
 
 def train_decision_tree(data, target_column):
@@ -391,7 +391,6 @@ def calculate_accuracy(y_test, y_pred):
     print(f"Accuracy: {accuracy}")
     return accuracy
 
-
 def store_and_print_classification_report(y_test, y_pred):
     report = classification_report(y_test, y_pred)
     print(f"Classification Report:\n{report}")
@@ -416,7 +415,6 @@ def print_and_return_recall(y_test, y_pred):
     recall = recall_score(y_test, y_pred)
     print(f"Recall: {recall}")
     return recall
-
 
 def print_auc(model, X_test, y_test):
     """
