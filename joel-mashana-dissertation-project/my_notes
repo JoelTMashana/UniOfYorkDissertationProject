@@ -24,3 +24,4 @@ betwen the positive and negative classes.
 4. Initial run of logistic regression suggests that it is only predicting one class. Possibly due to
 class imbalance
 5. SVM has similar issues
+6. large negative value for loss function requires inspecting

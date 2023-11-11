@@ -21,6 +21,7 @@ from sklearn.svm import SVC
 import tensorflow 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+import statsmodels.api as sm
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -449,11 +450,28 @@ def train_ann(data, target_column, columns_to_exclude, model_name):
 
     model.fit(X_train, y_train, epochs=10, batch_size=32)
 
+    print_model_name(model_name)
     loss, accuracy = model.evaluate(X_test, y_test)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
 
     return model
 
+def train_probit_model(data, target_column, model_name):
+ 
+    X = data.drop(target_column, axis=1)
+    y = data[target_column]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train = sm.add_constant(X_train)
+    X_test = sm.add_constant(X_test)
+
+    probit_model = sm.Probit(y_train, X_train).fit()
+
+    print_model_name(model_name)
+    print(probit_model.summary())
+
+    return probit_model
 
 
 ### Evaluation ##########################################################
