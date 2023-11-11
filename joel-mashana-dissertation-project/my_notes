@@ -1,5 +1,7 @@
 ### Experiments
 
+Remember to experiment with and without PCA
+
 1. Decision tree algorithms without PCA
 Accuracy scores were perfect suggesting overfitting despite pruning.
 2. Decision Tree algorithm with PCA
@@ -19,3 +21,5 @@ Score looks more realistic, reduced to 3 PCA's
 potential justification for using AUC and ROC for analysis. 
 3. AUC: 0.9267149758454105 suggests that the model has a strong ability to distinguish 
 betwen the positive and negative classes.
+4. Initial run of logistic regression suggests that it is only predicting one class. Possibly due to
+class imbalance

@@ -173,6 +173,17 @@ def create_pipeline(**kwargs):
         outputs="decision_tree_model",
         name="execute_decision_tree_node"
     )
+
+    execute_logistic_regression_node = node(
+        train_logistic_regression,
+        inputs={
+            "data": "combined_data_set_pca_applied",
+            "target_column": "params:target",
+            "model_name":  "params:logistic_regression"
+        },
+        outputs="logistic_regression_model",
+        name="execute_logistic_regression_node"
+    )
     
 
     return Pipeline(
@@ -196,6 +207,7 @@ def create_pipeline(**kwargs):
            apply_principle_component_analysis_node,
 
            ### Excute models
-           execute_decision_tree_node
+           execute_decision_tree_node,
+           execute_logistic_regression_node
         ]
     )
