@@ -49,4 +49,6 @@ ann: 'Artificial Neural Network'
 probit: 'Probit'
 
 
-### Baseline models
+### Hyperparameter optimisation 
+
+number_of_iterations_randomised_search: 100

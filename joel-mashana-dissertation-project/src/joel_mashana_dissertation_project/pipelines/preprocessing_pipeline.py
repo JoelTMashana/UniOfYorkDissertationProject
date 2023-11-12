@@ -4,7 +4,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        prepare_inflation_data, get_average_inflation_for_periods,
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
-                                       train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy
+                                       train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
+                                       split_train_test_validate
                                        )
 def create_pipeline(**kwargs):
     
@@ -151,6 +152,7 @@ def create_pipeline(**kwargs):
         name="determine_and_assign_risk_levels_node"
     )
 
+  
     apply_principle_component_analysis_node = node(
         scale_and_apply_pca,
         inputs= {
@@ -163,12 +165,25 @@ def create_pipeline(**kwargs):
         name="apply_principle_component_analysis_node"
     )
 
+    split_data_train_test_validate_node = node(
+        split_train_test_validate,
+         inputs = {
+            "data": "combined_data_set_pca_applied",
+            "target_column": "params:target"
+        },
+        outputs = ["X_train","X_validate", " X_test", "y_train", "y_validate", "y_test"],
+        name="split_data_train_test_validate_node"
+    )
+
     execute_decision_tree_node = node(
         train_decision_tree,
         inputs={
-            "data": "combined_data_set_pca_applied",
-            "target_column": "params:target",
-            "model_name":  "params:decision_tree"
+            "X_train": "X_train",
+            "y_train": "y_train",
+            "X_validate": "X_validate",
+            "y_validate": "y_validate",
+            "model_name":  "params:decision_tree",
+            "number_of_iterations": "params:number_of_iterations_randomised_search"
         },
         outputs=[
             "decision_tree_model", 
@@ -178,6 +193,7 @@ def create_pipeline(**kwargs):
             ],
         name="execute_decision_tree_node"
     )
+
     # calculate_decision_tree_accuracy_node = node(
     #     calculate_accuracy,
     #     inputs={
@@ -243,7 +259,7 @@ def create_pipeline(**kwargs):
         #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
            determine_and_assign_risk_levels_node,
            apply_principle_component_analysis_node,
-
+           split_data_train_test_validate_node,
            ### Excute models
            execute_decision_tree_node,
         #    execute_logistic_regression_node,

@@ -22,6 +22,7 @@ import tensorflow
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import statsmodels.api as sm
+from sklearn.model_selection import RandomizedSearchCV
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -368,30 +369,45 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
 
 # ###### ML Algorithms
 
-
-
-def train_decision_tree(data, target_column, model_name):
-    
-    X = data.drop(target_column, axis=1)
+def split_train_test_validate(data, target_column):
+    X = data
     y = data[target_column]
+    X = data.drop(columns=[target_column])
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    return X_train, X_validate, X_test, y_train, y_validate, y_test
+
+def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+    
+    param_dist = {
+        "max_depth": [3, 10, None],
+        "min_samples_split": range(2, 11),
+        "min_samples_leaf": range(1, 11),
+        "criterion": ["gini", "entropy"]
+    }
+    # X = data.drop(target_column, axis=1)
+    # y = data[target_column]
+
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     decision_tree = DecisionTreeClassifier(random_state=42)
+    random_search = RandomizedSearchCV(decision_tree, param_distributions=param_dist, 
+                                       n_iter=number_of_iterations, cv=5, random_state=42)
+    random_search.fit(X_train, y_train)
 
-    decision_tree.fit(X_train, y_train)
+    best_model = random_search.best_estimator_
 
-    predictions = decision_tree.predict(X_test)
+    predictions = best_model.predict(X_validate)
 
     print_model_name(model_name)
-    accuracy = calculate_accuracy(y_test, predictions)
-    report = store_and_print_classification_report(y_test, predictions)
-    auc = print_auc(decision_tree, X_test, y_test)
-    
-    accuracy_df = pd.DataFrame({'accuracy': [accuracy]})
-    report_df = pd.DataFrame({'report': [report]})
-    auc_df = pd.DataFrame({'auc': [auc]})
-    return decision_tree, accuracy_df, auc_df, report_df
+    accuracy = calculate_accuracy(y_validate, predictions)
+    report = store_and_print_classification_report(y_validate, predictions)
+    auc = print_auc(best_model, X_validate, y_validate)
+
+    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]})
 
 
 def train_logistic_regression(data, target_column, model_name):

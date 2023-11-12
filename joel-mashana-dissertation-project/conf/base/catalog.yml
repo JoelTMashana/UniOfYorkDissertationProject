@@ -101,12 +101,37 @@ combined_data_set_with_risk_levels:
 
 
 
+
 # PCA -------------------
 
 combined_data_set_pca_applied:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/combined_data_set_pca_applied.csv
 
+# Traing test validate split ---------------------------------
+X_train:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train.csv
+
+y_train:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train.csv
+  
+X_validate:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_validate.csv
+
+y_validate:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_validate.csv
+
+X_test:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_test.csv
+
+y_test:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_test.csv
 
 # Models ------------------------------------------------
 decision_tree_model:
