@@ -175,6 +175,11 @@ decision_tree_performance_metric_report:
   filepath: data/07_model_output/decision_tree_performance_metric_report.csv
   versioned: true
 
+decision_tree_optimal_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/decision_tree_optimal_hyperparameters.csv
+    versioned: true
+
 logistic_regression_performance_metrics:
   type: pandas.CSVDataSet
   filepath: data/07_model_output/logistic_regression_performance_metrics.csv

@@ -383,21 +383,18 @@ def split_train_test_validate(data, target_column):
 def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
     param_dist = {
-        "max_depth": [3, 10, None],
-        "min_samples_split": range(2, 11),
-        "min_samples_leaf": range(1, 11),
+        "max_depth": [3, 5, 10, 15, 20, None],
+        "min_samples_split": range(2, 50),
+        "min_samples_leaf": range(1, 50),
         "criterion": ["gini", "entropy"]
     }
-    # X = data.drop(target_column, axis=1)
-    # y = data[target_column]
-
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     decision_tree = DecisionTreeClassifier(random_state=42)
     random_search = RandomizedSearchCV(decision_tree, param_distributions=param_dist, 
-                                       n_iter=number_of_iterations, cv=5, random_state=42)
+                                       n_iter=number_of_iterations, cv=10, random_state=42)
     random_search.fit(X_train, y_train)
 
+    best_params = random_search.best_params_
     best_model = random_search.best_estimator_
 
     predictions = best_model.predict(X_validate)
@@ -407,7 +404,7 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     report = store_and_print_classification_report(y_validate, predictions)
     auc = print_auc(best_model, X_validate, y_validate)
 
-    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]})
+    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
 
 
 def train_logistic_regression(data, target_column, model_name):
@@ -518,7 +515,7 @@ def print_auc(model, X_test, y_test):
     """
     Prints the AUC for the given model and test data.
     """
-    # probabilities for the positive class
+    # Probabilities for the positive class
     probas = model.predict_proba(X_test)[:, 1]
 
     roc_auc = roc_auc_score(y_test, probas)

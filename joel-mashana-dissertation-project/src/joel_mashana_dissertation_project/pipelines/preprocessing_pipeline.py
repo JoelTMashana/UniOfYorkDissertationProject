@@ -189,7 +189,8 @@ def create_pipeline(**kwargs):
             "decision_tree_model", 
             "decision_tree_performance_metric_accuracy",
             "decision_tree_performance_metric_auc",
-            "decision_tree_performance_metric_report"
+            "decision_tree_performance_metric_report",
+            "decision_tree_optimal_hyperparameters"
             ],
         name="execute_decision_tree_node"
     )
