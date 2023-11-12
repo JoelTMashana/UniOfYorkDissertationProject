@@ -135,13 +135,34 @@ probit_model:
   versioned: true
 
 # Model outputs ------------------------------------------------------
-decision_tree_performance_metrics:
+decision_tree_performance_metric_accuracy:
   type: pandas.CSVDataSet
-  filepath: data/07_model_output/decision_tree_performance_metrics.csv
+  filepath: data/07_model_output/decision_tree_performance_metric_accuracy.csv
+  versioned: true
+
+decision_tree_performance_metric_auc:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/decision_tree_performance_metric_auc.csv
+  versioned: true
+
+decision_tree_performance_metric_report:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/decision_tree_performance_metric_report.csv
+  versioned: true
 
 logistic_regression_performance_metrics:
   type: pandas.CSVDataSet
   filepath: data/07_model_output/logistic_regression_performance_metrics.csv
 
+svm_performance_metrics:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/svm_performance_metrics.csv
 
+ann_performance_metrics:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/ann_performance_metrics.csv
+
+probit_performance_metrics:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/probit_performance_metrics.csv
 

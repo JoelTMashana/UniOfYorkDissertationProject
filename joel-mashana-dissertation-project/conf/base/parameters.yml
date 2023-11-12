@@ -47,3 +47,6 @@ logistic_regression: 'Logistic Regression'
 svm: 'Support Vector Machine'
 ann: 'Artificial Neural Network'
 probit: 'Probit'
+
+
+### Baseline models

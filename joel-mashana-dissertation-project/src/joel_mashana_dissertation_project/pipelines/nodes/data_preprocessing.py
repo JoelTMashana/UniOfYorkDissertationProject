@@ -369,10 +369,10 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
 # ###### ML Algorithms
 
 
+
 def train_decision_tree(data, target_column, model_name):
     
     X = data.drop(target_column, axis=1)
-    # X = data.drop(columns_to_exclude, axis=1)
     y = data[target_column]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -383,13 +383,15 @@ def train_decision_tree(data, target_column, model_name):
 
     predictions = decision_tree.predict(X_test)
 
-
     print_model_name(model_name)
-    calculate_accuracy(y_test, predictions)
-    store_and_print_classification_report(y_test, predictions)
-
-    print_auc(decision_tree, X_test, y_test)
-    return decision_tree
+    accuracy = calculate_accuracy(y_test, predictions)
+    report = store_and_print_classification_report(y_test, predictions)
+    auc = print_auc(decision_tree, X_test, y_test)
+    
+    accuracy_df = pd.DataFrame({'accuracy': [accuracy]})
+    report_df = pd.DataFrame({'report': [report]})
+    auc_df = pd.DataFrame({'auc': [auc]})
+    return decision_tree, accuracy_df, auc_df, report_df
 
 
 def train_logistic_regression(data, target_column, model_name):
@@ -398,7 +400,6 @@ def train_logistic_regression(data, target_column, model_name):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     logistic_regression_model = LogisticRegression()
-
 
     logistic_regression_model.fit(X_train, y_train)
 
@@ -411,6 +412,7 @@ def train_logistic_regression(data, target_column, model_name):
     print_auc(logistic_regression_model, X_test, y_test)
 
     return logistic_regression_model
+
 
 
 def train_svm(data, target_column, model_name):
@@ -430,6 +432,7 @@ def train_svm(data, target_column, model_name):
     print_auc(svm_model, X_test, y_test)
 
     return svm_model
+
 
 def train_ann(data, target_column, columns_to_exclude, model_name):
     X = data.drop(target_column, axis=1)
@@ -454,24 +457,10 @@ def train_ann(data, target_column, columns_to_exclude, model_name):
     loss, accuracy = model.evaluate(X_test, y_test)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
 
+
     return model
 
-def train_probit_model(data, target_column, model_name):
- 
-    X = data.drop(target_column, axis=1)
-    y = data[target_column]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    X_train = sm.add_constant(X_train)
-    X_test = sm.add_constant(X_test)
-
-    probit_model = sm.Probit(y_train, X_train).fit()
-
-    print_model_name(model_name)
-    print(probit_model.summary())
-
-    return probit_model
 
 
 ### Evaluation ##########################################################

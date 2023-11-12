@@ -4,7 +4,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        prepare_inflation_data, get_average_inflation_for_periods,
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
-                                       train_decision_tree, train_logistic_regression, train_svm, train_ann, train_probit_model
+                                       train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy
                                        )
 def create_pipeline(**kwargs):
     
@@ -170,9 +170,24 @@ def create_pipeline(**kwargs):
             "target_column": "params:target",
             "model_name":  "params:decision_tree"
         },
-        outputs="decision_tree_model",
+        outputs=[
+            "decision_tree_model", 
+            "decision_tree_performance_metric_accuracy",
+            "decision_tree_performance_metric_auc",
+            "decision_tree_performance_metric_report"
+            ],
         name="execute_decision_tree_node"
     )
+    # calculate_decision_tree_accuracy_node = node(
+    #     calculate_accuracy,
+    #     inputs={
+    #         "data": "combined_data_set_pca_applied",
+    #         "target_column": "params:target",
+    #         "model_name":  "params:decision_tree"
+    #     },
+    #     outputs="decision_tree_model",
+    #     name="execute_decision_tree_node"
+    # )
 
     execute_logistic_regression_node = node(
         train_logistic_regression,
@@ -208,17 +223,6 @@ def create_pipeline(**kwargs):
         name="execute_ann_node"
     )
 
-    execute_probit_node = node(
-        train_probit_model,
-        inputs={
-            "data": "combined_data_set_pca_applied",
-            "target_column": "params:target",
-            "model_name":  "params:probit"
-        },
-        outputs="probit_model",
-        name="execute_probit_node"
-    )
-
 
     return Pipeline(
         [ 
@@ -242,9 +246,9 @@ def create_pipeline(**kwargs):
 
            ### Excute models
            execute_decision_tree_node,
-           execute_logistic_regression_node,
-           execute_svm_node,
-           execute_ann_node,
-        #    execute_probit_node
+        #    execute_logistic_regression_node,
+        #    execute_svm_node,
+        #    execute_ann_node,
+       
         ]
     )
