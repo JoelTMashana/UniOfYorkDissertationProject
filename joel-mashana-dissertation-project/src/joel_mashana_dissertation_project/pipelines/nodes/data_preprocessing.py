@@ -23,6 +23,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
+from imblearn.over_sampling import SMOTE
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -407,22 +408,24 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
 
 
-def train_logistic_regression(data, target_column, model_name):
-    X = data.drop(target_column, axis=1)
-    y = data[target_column]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name):
 
     logistic_regression_model = LogisticRegression()
+    
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+    logistic_regression_model.fit(X_train_smote, y_train_smote)
 
-    logistic_regression_model.fit(X_train, y_train)
+
+    # logistic_regression_model.fit(X_train, y_train)
 
     # Predicting on the test data
-    y_pred = logistic_regression_model.predict(X_test)
+    y_pred = logistic_regression_model.predict(X_validate)
 
     print_model_name(model_name)
-    calculate_accuracy(y_test, y_pred)
-    store_and_print_classification_report(y_test, y_pred)
-    print_auc(logistic_regression_model, X_test, y_test)
+    calculate_accuracy(y_validate, y_pred)
+    store_and_print_classification_report(y_validate, y_pred)
+    print_auc(logistic_regression_model, X_validate, y_validate)
 
     return logistic_regression_model
 

@@ -195,22 +195,14 @@ def create_pipeline(**kwargs):
         name="execute_decision_tree_node"
     )
 
-    # calculate_decision_tree_accuracy_node = node(
-    #     calculate_accuracy,
-    #     inputs={
-    #         "data": "combined_data_set_pca_applied",
-    #         "target_column": "params:target",
-    #         "model_name":  "params:decision_tree"
-    #     },
-    #     outputs="decision_tree_model",
-    #     name="execute_decision_tree_node"
-    # )
 
     execute_logistic_regression_node = node(
         train_logistic_regression,
         inputs={
-            "data": "combined_data_set_pca_applied",
-            "target_column": "params:target",
+            "X_train": "X_train",
+            "y_train": "y_train",
+            "X_validate": "X_validate",
+            "y_validate": "y_validate",
             "model_name":  "params:logistic_regression"
         },
         outputs="logistic_regression_model",
@@ -262,8 +254,8 @@ def create_pipeline(**kwargs):
            apply_principle_component_analysis_node,
            split_data_train_test_validate_node,
            ### Excute models
-           execute_decision_tree_node,
-        #    execute_logistic_regression_node,
+        #    execute_decision_tree_node,
+           execute_logistic_regression_node,
         #    execute_svm_node,
         #    execute_ann_node,
        
