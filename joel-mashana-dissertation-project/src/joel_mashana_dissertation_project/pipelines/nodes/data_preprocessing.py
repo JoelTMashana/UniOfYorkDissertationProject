@@ -408,27 +408,36 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
 
 
-def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name):
+def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
 
-    logistic_regression_model = LogisticRegression()
-    
+    param_dist = {
+        'C': [0.001, 0.01, 0.1, 1, 10, 100],
+        'penalty': ['l1', 'l2', 'elasticnet', 'none'],
+        'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+        'class_weight': [None, 'balanced'],
+        'l1_ratio': [None, 0.5, 0.75, 1]
+    }
+
+    logistic_regression_model = LogisticRegression(random_state=42)
+
+    random_search = RandomizedSearchCV(logistic_regression_model, param_distributions=param_dist, 
+                                   n_iter=number_of_iterations, cv=10, random_state=42)
     smote = SMOTE(random_state=42)
     X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
-    logistic_regression_model.fit(X_train_smote, y_train_smote)
 
+    random_search.fit(X_train_smote, y_train_smote)
 
-    # logistic_regression_model.fit(X_train, y_train)
+    best_params = random_search.best_params_
+    best_model = random_search.best_estimator_
 
-    # Predicting on the test data
-    y_pred = logistic_regression_model.predict(X_validate)
+    y_pred = best_model.predict(X_validate)
 
     print_model_name(model_name)
-    calculate_accuracy(y_validate, y_pred)
-    store_and_print_classification_report(y_validate, y_pred)
-    print_auc(logistic_regression_model, X_validate, y_validate)
+    accuracy = calculate_accuracy(y_validate, y_pred)
+    report =  store_and_print_classification_report(y_validate, y_pred)
+    auc = print_auc(best_model, X_validate, y_validate)
 
-    return logistic_regression_model
-
+    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
 def train_svm(data, target_column, model_name):
@@ -525,3 +534,13 @@ def print_auc(model, X_test, y_test):
 
     print(f"AUC: {roc_auc}")
     return roc_auc
+
+
+
+#### Sampling
+
+def smote_oversample_minority_class(X_train, y_train):
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
+    return X_train_smote, y_train_smote

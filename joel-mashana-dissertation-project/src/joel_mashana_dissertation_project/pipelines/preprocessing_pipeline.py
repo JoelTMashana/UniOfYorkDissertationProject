@@ -5,7 +5,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
-                                       split_train_test_validate
+                                       split_train_test_validate,  smote_oversample_minority_class
                                        )
 def create_pipeline(**kwargs):
     
@@ -199,14 +199,30 @@ def create_pipeline(**kwargs):
     execute_logistic_regression_node = node(
         train_logistic_regression,
         inputs={
-            "X_train": "X_train",
-            "y_train": "y_train",
+            "X_train": "X_train_smote",
+            "y_train": "y_train_smote",
             "X_validate": "X_validate",
             "y_validate": "y_validate",
-            "model_name":  "params:logistic_regression"
+            "model_name":  "params:logistic_regression",
+            "number_of_iterations": "params:number_of_iterations_randomised_search"
         },
-        outputs="logistic_regression_model",
+        outputs=[
+            "logistic_regression_model",
+            "logistic_regression_performance_metric_accuracy",
+            "logistic_regression_performance_metric_auc",
+            "logistic_regression_performance_metric_report",
+            "logistic_regression_optimal_hyperparameters"
+                 ],
         name="execute_logistic_regression_node"
+    )
+
+    smote_oversample_minority_class_node = node(
+         smote_oversample_minority_class,
+         inputs={
+            "X_train": "X_train",
+            "y_train": "y_train",
+        },
+        outputs= ["X_train_smote", "y_train_smote"]
     )
 
     execute_svm_node = node(
@@ -255,6 +271,7 @@ def create_pipeline(**kwargs):
            split_data_train_test_validate_node,
            ### Excute models
         #    execute_decision_tree_node,
+           smote_oversample_minority_class_node,
            execute_logistic_regression_node,
         #    execute_svm_node,
         #    execute_ann_node,

@@ -133,6 +133,18 @@ y_test:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/y_test.csv
 
+
+# smote 
+
+X_train_smote:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train_smote.csv
+
+y_train_smote:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train_smote.csv
+
+
 # Models ------------------------------------------------
 decision_tree_model:
   type: pickle.PickleDataSet
@@ -180,9 +192,25 @@ decision_tree_optimal_hyperparameters:
     filepath: data/07_model_output/decision_tree_optimal_hyperparameters.csv
     versioned: true
 
-logistic_regression_performance_metrics:
+
+
+logistic_regression_performance_metric_accuracy:
   type: pandas.CSVDataSet
-  filepath: data/07_model_output/logistic_regression_performance_metrics.csv
+  filepath: data/07_model_output/logistic_regression_performance_metric_accuracy.csv
+
+logistic_regression_performance_metric_auc:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_performance_metric_auc.csv
+
+logistic_regression_performance_metric_report:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_performance_metric_report.csv
+
+logistic_regression_optimal_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/decision_tree_optimal_hyperparameters.csv
+    versioned: true
+
 
 svm_performance_metrics:
   type: pandas.CSVDataSet
