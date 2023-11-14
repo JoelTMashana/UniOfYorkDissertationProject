@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from collections import defaultdict
 from kedro.pipeline import node
 from sklearn.impute import SimpleImputer, KNNImputer
@@ -24,6 +25,7 @@ from tensorflow.keras.layers import Dense
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
+from scipy.stats import expon, reciprocal
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -366,7 +368,23 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
     return principal_components
 
 
+#### Scale 
 
+def standard_scale_data(data, columns_to_exclude, target_column):
+    # X = data.drop(columns=[target_column] + columns_to_exclude)
+    X = data.drop(columns=[target_column])
+    X=  data.drop(columns=[columns_to_exclude])
+    y = data[target_column]
+
+    scaler = StandardScaler()
+
+    X_scaled = scaler.fit_transform(X)
+
+    X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns, index=data.index)
+
+    X_scaled_df[target_column] = y
+
+    return X_scaled_df
 
 # ###### ML Algorithms
 
@@ -440,52 +458,62 @@ def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_na
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
-def train_svm(data, target_column, model_name):
-    X = data.drop(target_column, axis=1)
-    y = data[target_column]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def train_svm(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+    #not working
+    param_dist = {
+        'C': reciprocal(0.1, ),
+        'kernel': ['linear', 'sigmoid'],
+        'degree': [2, 3, 4, 5]
+    }
+    svm_model = SVC()
+    random_search = RandomizedSearchCV(svm_model, param_distributions=param_dist, 
+                                    n_iter=number_of_iterations, cv=5, verbose=2, random_state=42, n_jobs=-1)
+    
+    random_search.fit(X_train, y_train)
 
-    svm_model = SVC(probability=True,random_state=42)
+    best_params = random_search.best_params_
+    best_model = random_search.best_estimator_
 
-    svm_model.fit(X_train, y_train)
-
-    y_pred = svm_model.predict(X_test)
+    y_pred = best_model.predict(X_validate)
 
     print_model_name(model_name)
-    calculate_accuracy(y_test, y_pred)
-    store_and_print_classification_report(y_test, y_pred)
-    print_auc(svm_model, X_test, y_test)
 
-    return svm_model
+    accuracy = calculate_accuracy(y_validate, y_pred)
+    report =  store_and_print_classification_report(y_validate, y_pred)
+    auc = print_auc(best_model, X_validate, y_validate)
 
-
-def train_ann(data, target_column, columns_to_exclude, model_name):
-    X = data.drop(target_column, axis=1)
-    X=  data.drop(columns=[columns_to_exclude])
-    y = data[target_column]
+    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def train_ann(X_train, y_train, X_validate, y_validate, model_name):
 
     model = Sequential([
-        Dense(128, activation='relu', input_shape=(X_train.shape[1],)),
-        Dense(64, activation='relu'),
-        Dense(32, activation='relu'),
+        Dense(224, activation='relu', input_shape=(X_train.shape[1],)),
+        Dense(100, activation='relu'),
         Dense(1, activation='sigmoid')  # Binary
     ])
 
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-    model.fit(X_train, y_train, epochs=10, batch_size=32)
+    # For binary cross entropy, may need to change labels in pre processing
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1})
 
+
+    model.fit(X_train, y_train, epochs=10, batch_size=64)
+    y_pred_probs = model.predict(X_validate).ravel()
+
+
+    y_pred = np.round(y_pred_probs)
     print_model_name(model_name)
-    loss, accuracy = model.evaluate(X_test, y_test)
+    accuracy = calculate_accuracy(y_validate, y_pred)
+    report =  store_and_print_classification_report(y_validate, y_pred)
+    
+    loss, accuracy = model.evaluate(X_validate, y_validate)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
 
 
     return model
-
-
 
 
 ### Evaluation ##########################################################
@@ -535,6 +563,17 @@ def print_auc(model, X_test, y_test):
     print(f"AUC: {roc_auc}")
     return roc_auc
 
+def print_auc_tf(model, X_test, y_test):
+    """
+    Prints the AUC for the given model and test data.
+    """
+    # Probabilities for the positive class
+    probas = model.predict(X_test).ravel()[:, 1]
+
+    roc_auc = roc_auc_score(y_test, probas)
+
+    print(f"AUC: {roc_auc}")
+    return roc_auc
 
 
 #### Sampling

@@ -5,7 +5,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
-                                       split_train_test_validate,  smote_oversample_minority_class
+                                       split_train_test_validate,  smote_oversample_minority_class, standard_scale_data
                                        )
 def create_pipeline(**kwargs):
     
@@ -226,28 +226,58 @@ def create_pipeline(**kwargs):
     )
 
     execute_svm_node = node(
-    func=train_svm,
-    inputs={
-        "data": "combined_data_set_pca_applied",
-        "target_column": "params:target",
-        "model_name": "params:svm"
-    },
-    outputs="svm_model",
-    name="execute_svm_node"
+        func=train_svm,
+        inputs={
+            "X_train": "X_train_smote",
+            "y_train": "y_train_smote",
+            "X_validate": "X_validate",
+            "y_validate": "y_validate",
+            "model_name":  "params:svm",
+            "number_of_iterations": "params:number_of_iterations_randomised_search"
+        },
+        outputs=[
+            "svm_model",
+            "svm_model_metric_accuracy",
+            "svm_model_metric_auc",
+            "svm_model_metric_report",
+            "svm_model_optimal_hyperparameters"
+        ],
+        name="execute_svm_node"
     )
 
     execute_ann_node = node(
         train_ann,
         inputs={
-            "data": "combined_data_set_with_risk_levels",
-            "target_column": "params:target",
-            "columns_to_exclude": "params:columns_to_exclude",
+            "X_train": "X_train_ann",
+            "y_train": "y_train_ann",
+            "X_validate": "X_validate_ann",
+            "y_validate": "y_validate_ann",
             "model_name":  "params:ann"
         },
         outputs="ann_model",
         name="execute_ann_node"
     )
 
+    scale_data_for_ann_node = node(
+        standard_scale_data,
+        inputs={
+            "data": "combined_data_set_with_risk_levels",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude",
+        },
+        outputs="data_standard_scaled_for_ann",
+        name="scale_data_for_ann_node"
+    )
+
+    split_data_train_test_validate_for_ann_node = node(
+        split_train_test_validate,
+        inputs = {
+            "data": "data_standard_scaled_for_ann",
+            "target_column": "params:target"
+        },
+        outputs = ["X_train_ann","X_validate_ann", " X_test_ann", "y_train_ann", "y_validate_ann", "y_test_ann"],
+        name="split_data_train_test_validate_for_ann_node"
+    )
 
     return Pipeline(
         [ 
@@ -272,9 +302,11 @@ def create_pipeline(**kwargs):
            ### Excute models
         #    execute_decision_tree_node,
            smote_oversample_minority_class_node,
-           execute_logistic_regression_node,
+        #    execute_logistic_regression_node,
         #    execute_svm_node,
-        #    execute_ann_node,
-       
+           scale_data_for_ann_node,
+           split_data_train_test_validate_for_ann_node,
+           execute_ann_node,
+            
         ]
     )
