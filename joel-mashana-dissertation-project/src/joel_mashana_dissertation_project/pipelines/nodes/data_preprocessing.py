@@ -26,6 +26,7 @@ import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
 from scipy.stats import expon, reciprocal
+from sklearn.feature_selection import RFE
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -337,11 +338,13 @@ def perform_kmeans_clustering(data, column_to_cluster):
     data['Clusters'] = kmeans.fit_predict(data[[column_to_cluster]])
 
     data['Risk Level'] = kmeans.labels_ + 1 # assign risk levels, account for 0 index
-    data = data.drop(['Clusters'], axis=1)
+    data = data.drop(['Clusters', '% Invoices not paid within agreed terms'], axis=1)
 
     
     assert 'Risk Level' in data.columns, "Risk Level column does not exist."
     assert 'Clusters' not in data.columns, "Clusters column should not exist after dropping it."
+    assert '% Invoices not paid within agreed terms' not in data.columns, "Error: '% Invoices not paid within agreed terms' column still exists in the dataset."
+
     assert data['Risk Level'].nunique() == optimal_number_of_clusters, (
         "The number of unique values in the Risk Level column is not equal to the optimal number of clusters."
     )
@@ -392,6 +395,21 @@ def split_train_test_validate(data, target_column):
     X = data
     y = data[target_column]
     X = data.drop(columns=[target_column])
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    return X_train, X_validate, X_test, y_train, y_validate, y_test
+
+def split_train_test_validate_rfe(data, target_column, columns_to_exclude):
+    X = data
+    # X = data.drop(columns=[columns_to_exclude])
+    # X = data.drop(columns=[target_column])
+    y = data[target_column]
+    X = data.drop(columns=[columns_to_exclude, target_column]) # Check if made same mistake else where
+    assert 'Period' not in X.columns, "Error: 'Period' column still exists in the dataset."
+    assert '% Invoices not paid within agreed terms' not in X.columns, "Error: '% Invoices not paid within agreed terms' column still exists in the dataset."
 
     X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -458,6 +476,10 @@ def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_na
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
+
+
+
+
 def train_svm(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     #not working
     param_dist = {
@@ -485,10 +507,49 @@ def train_svm(X_train, y_train, X_validate, y_validate, model_name, number_of_it
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
+
+def train_logistic_regression_for_rfe(X_train, y_train, X_validate, y_validate, model_name, number_of_features_to_select):
+    logistic_regression_model = LogisticRegression(random_state=42)
+
+    smote = SMOTE(random_state=42) # For now use this but eventually use the node
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
+    # RFE
+    rfe = RFE(estimator=logistic_regression_model, n_features_to_select=number_of_features_to_select)
+    rfe.fit(X_train_smote, y_train_smote)
+
+    # Selecting features based on RFE
+    # X_train_rfe = X_train_smote[:, rfe.support_]
+    # X_validate_rfe = X_validate[:, rfe.support_]
+
+    X_train_rfe = X_train_smote.iloc[:, rfe.support_]
+    X_validate_rfe = X_validate.iloc[:, rfe.support_]
+
+
+    logistic_regression_model.fit(X_train_rfe, y_train_smote)
+
+    y_pred = logistic_regression_model.predict(X_validate_rfe)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, y_pred)
+    report = store_and_print_classification_report(y_validate, y_pred)
+    auc = print_auc(logistic_regression_model, X_validate_rfe, y_validate)
+
+    # Identifying selected features
+    selected_features = pd.DataFrame({
+        'Feature': X_train.columns[rfe.support_],
+        'Ranking': rfe.ranking_[rfe.support_]
+    })
+   
+
+
+    return logistic_regression_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), selected_features
+
+
 def train_ann(X_train, y_train, X_validate, y_validate, model_name):
 
     model = Sequential([
-        Dense(224, activation='relu', input_shape=(X_train.shape[1],)),
+        # Dense(224, activation='relu', input_shape=(X_train.shape[1],)),
         Dense(100, activation='relu'),
         Dense(1, activation='sigmoid')  # Binary
     ])
@@ -508,12 +569,14 @@ def train_ann(X_train, y_train, X_validate, y_validate, model_name):
     print_model_name(model_name)
     accuracy = calculate_accuracy(y_validate, y_pred)
     report =  store_and_print_classification_report(y_validate, y_pred)
-    
+    auc = print_auc_tf(model, X_validate, y_validate)
+
     loss, accuracy = model.evaluate(X_validate, y_validate)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
 
 
-    return model
+    return model#, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]})
+
 
 
 ### Evaluation ##########################################################
@@ -568,7 +631,7 @@ def print_auc_tf(model, X_test, y_test):
     Prints the AUC for the given model and test data.
     """
     # Probabilities for the positive class
-    probas = model.predict(X_test).ravel()[:, 1]
+    probas = model.predict(X_test).ravel()
 
     roc_auc = roc_auc_score(y_test, probas)
 

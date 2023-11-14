@@ -146,7 +146,7 @@ y_train_smote:
 
 
 
-# Sacle
+# Scale
 
 data_standard_scaled_for_ann:
   type: pandas.CSVDataSet
@@ -177,6 +177,37 @@ y_test_ann:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/y_test_ann.csv
 
+
+
+
+## rfe
+X_train_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train_for_rfe.csv
+
+X_validate_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_validate_for_rfe.csv
+
+X_test_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_test_for_rfe.csv
+
+y_train_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train_for_rfe.csv
+
+y_validate_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_validate_for_rfe.csv
+
+y_test_for_rfe:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_test_for_rfe.csv
+
+
+
+
 # Models ------------------------------------------------
 decision_tree_model:
   type: pickle.PickleDataSet
@@ -202,6 +233,7 @@ probit_model:
   type: pickle.PickleDataSet
   filepath: data/06_models/probit_model.pkl
   versioned: true
+
 
 # Model outputs ------------------------------------------------------
 decision_tree_performance_metric_accuracy:
@@ -282,6 +314,34 @@ ann_model_parameters:
 
 
 
+#### Recurvise Feature Elimation
+
+logistic_regression_model_rfe:
+  type:  pickle.PickleDataSet
+  filepath: data/06_models/logistic_regression_model_rfe.pkl
+  versioned: true
+
+logistic_regression_model_rfe_performance_metric_accuracy:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_model_rfe_performance_metric_accuracy.csv
+  versioned: true
+
+logistic_regression_model_rfe_performance_metric_auc:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_model_rfe_performance_metric_auc.csv
+  versioned: true
+
+
+logistic_regression_model_rfe_performance_metric_report:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_model_rfe_performance_metric_report.csv
+  versioned: true
+
+
+logistic_regression_model_rfe_selected_features:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/logistic_regression_model_rfe_selected_features.csv
+  versioned: true
 
 
 

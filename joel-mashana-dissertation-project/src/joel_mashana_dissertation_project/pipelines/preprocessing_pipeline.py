@@ -5,7 +5,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        gdp_remove_headers, process_gdp_averages, combine_datasets, convert_float_columns_to_int,
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
-                                       split_train_test_validate,  smote_oversample_minority_class, standard_scale_data
+                                       split_train_test_validate,  smote_oversample_minority_class, standard_scale_data,
+                                       train_logistic_regression_for_rfe, split_train_test_validate_rfe
                                        )
 def create_pipeline(**kwargs):
     
@@ -272,11 +273,42 @@ def create_pipeline(**kwargs):
     split_data_train_test_validate_for_ann_node = node(
         split_train_test_validate,
         inputs = {
-            "data": "data_standard_scaled_for_ann",
+            "data": "combined_data_set_pca_applied",
             "target_column": "params:target"
         },
         outputs = ["X_train_ann","X_validate_ann", " X_test_ann", "y_train_ann", "y_validate_ann", "y_test_ann"],
         name="split_data_train_test_validate_for_ann_node"
+    )
+
+    split_data_train_test_validate_rfe_node = node(
+        split_train_test_validate_rfe,
+         inputs = {
+            "data": "combined_data_set_with_risk_levels",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude"
+        },
+        outputs = ["X_train_for_rfe","X_validate_for_rfe", " X_test_for_rfe", "y_train_for_rfe", "y_validate_for_rfe", "y_test_for_rfe"],
+        name="split_data_train_test_validate_rfe_node"
+    )
+
+    recursive_feature_elimination_node = node(
+        train_logistic_regression_for_rfe,
+        inputs={
+            "X_train": "X_train_for_rfe",
+            "y_train": "y_train_for_rfe",
+            "X_validate": "X_validate_for_rfe",
+            "y_validate": "y_validate_for_rfe",
+            "model_name": "params:logistic_regression",
+            "number_of_features_to_select": "params:number_of_features_to_select"
+        },
+        outputs= [
+            "logistic_regression_model_rfe",
+            "logistic_regression_model_rfe_performance_metric_accuracy",
+            "logistic_regression_model_rfe_performance_metric_auc",
+            "logistic_regression_model_rfe_performance_metric_report",
+            "logistic_regression_model_rfe_selected_features"
+        ],
+        name="recursive_feature_elimination_node"
     )
 
     return Pipeline(
@@ -306,7 +338,9 @@ def create_pipeline(**kwargs):
         #    execute_svm_node,
            scale_data_for_ann_node,
            split_data_train_test_validate_for_ann_node,
-           execute_ann_node,
+           split_data_train_test_validate_rfe_node,
+           recursive_feature_elimination_node,
+        #    execute_ann_node,
             
         ]
     )

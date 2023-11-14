@@ -52,3 +52,7 @@ probit: 'Probit'
 ### Hyperparameter optimisation 
 
 number_of_iterations_randomised_search: 100
+
+
+#rfe
+number_of_features_to_select: 200
