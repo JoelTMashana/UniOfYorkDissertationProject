@@ -249,11 +249,16 @@ def create_pipeline(**kwargs):
     execute_ann_node = node(
         train_ann,
         inputs={
-            "X_train": "X_train_ann",
-            "y_train": "y_train_ann",
-            "X_validate": "X_validate_ann",
-            "y_validate": "y_validate_ann",
-            "model_name":  "params:ann"
+            # "X_train": "X_train_ann",
+            # "y_train": "y_train_ann",
+            # "X_validate": "X_validate_ann",
+            # "y_validate": "y_validate_ann",
+            "X_train": "X_train_for_rfe",
+            "y_train": "y_train_for_rfe",
+            "X_validate": "X_validate_for_rfe",
+            "y_validate": "y_validate_for_rfe",
+            "model_name":  "params:ann",
+            "important_features_df": "logistic_regression_model_rfe_selected_features"
         },
         outputs="ann_model",
         name="execute_ann_node"
@@ -311,6 +316,7 @@ def create_pipeline(**kwargs):
         name="recursive_feature_elimination_node"
     )
 
+   
     return Pipeline(
         [ 
            filter_buyer_payment_practises_on_supply_chain_finance_node,
@@ -332,15 +338,15 @@ def create_pipeline(**kwargs):
            apply_principle_component_analysis_node,
            split_data_train_test_validate_node,
            ### Excute models
-        #    execute_decision_tree_node,
+           execute_decision_tree_node,
            smote_oversample_minority_class_node,
-        #    execute_logistic_regression_node,
-        #    execute_svm_node,
+           execute_logistic_regression_node,
+           execute_svm_node,
            scale_data_for_ann_node,
            split_data_train_test_validate_for_ann_node,
            split_data_train_test_validate_rfe_node,
            recursive_feature_elimination_node,
-        #    execute_ann_node,
+           execute_ann_node,
             
         ]
     )

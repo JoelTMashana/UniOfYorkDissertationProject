@@ -483,7 +483,7 @@ def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_na
 def train_svm(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     #not working
     param_dist = {
-        'C': reciprocal(0.1, ),
+        'C': reciprocal(0.1, 10),
         'kernel': ['linear', 'sigmoid'],
         'degree': [2, 3, 4, 5]
     }
@@ -545,38 +545,48 @@ def train_logistic_regression_for_rfe(X_train, y_train, X_validate, y_validate, 
 
     return logistic_regression_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), selected_features
 
+def train_ann(X_train, y_train, X_validate, y_validate, model_name, important_features_df):
 
-def train_ann(X_train, y_train, X_validate, y_validate, model_name):
+    important_features = important_features_df[important_features_df['Ranking'] == 1]['Feature'].tolist()
+
+    X_train = X_train[important_features]
+    X_validate = X_validate[important_features]
+
 
     model = Sequential([
-        # Dense(224, activation='relu', input_shape=(X_train.shape[1],)),
-        Dense(100, activation='relu'),
+        Dense(30, activation='relu', input_shape=(X_train.shape[1],)),
+        Dense(16, activation='relu'),
         Dense(1, activation='sigmoid')  # Binary
     ])
-
+    
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
     # For binary cross entropy, may need to change labels in pre processing
-    y_train = y_train.replace({1: 0, 2: 1})
-    y_validate = y_validate.replace({1: 0, 2: 1})
+    y_train_smote = y_train_smote.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+    scaler = StandardScaler()
 
+    X_train_scaled = scaler.fit_transform(X_train_smote)
+    X_validate_scaled = scaler.transform(X_validate)
+   
+    model.fit( X_train_scaled, y_train_smote, epochs=10, batch_size=64)
 
-    model.fit(X_train, y_train, epochs=10, batch_size=64)
-    y_pred_probs = model.predict(X_validate).ravel()
-
-
+    y_pred_probs = model.predict(X_validate_scaled).ravel()
     y_pred = np.round(y_pred_probs)
+
     print_model_name(model_name)
     accuracy = calculate_accuracy(y_validate, y_pred)
     report =  store_and_print_classification_report(y_validate, y_pred)
-    auc = print_auc_tf(model, X_validate, y_validate)
+    auc = print_auc_tf(model, X_validate_scaled, y_validate)
 
-    loss, accuracy = model.evaluate(X_validate, y_validate)
+    loss, accuracy = model.evaluate( X_validate_scaled , y_validate)
     print(f"Loss: {loss}, Accuracy: {accuracy}")
 
 
     return model#, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]})
-
 
 
 ### Evaluation ##########################################################
@@ -646,3 +656,5 @@ def smote_oversample_minority_class(X_train, y_train):
     X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
     return X_train_smote, y_train_smote
+
+
