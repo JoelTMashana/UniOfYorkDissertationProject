@@ -7,7 +7,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
                                        split_train_test_validate,  smote_oversample_minority_class, standard_scale_data,
                                        train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental,
-                                       train_logistic_regression_experimental, train_svm_experimental
+                                       train_logistic_regression_experimental, train_svm_experimental, train_ann_experimental
                                        )
 def create_pipeline(**kwargs):
     
@@ -140,6 +140,20 @@ def create_pipeline(**kwargs):
         },
         outputs="metrics",
         name="experiment_svm_buyer_data_only"
+    )
+    
+    experiment_ann_buyer_data_only = node (
+        train_ann_experimental,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:ann",
+            "exclude_column": "params:period"
+        },
+        outputs="metrics",
+        name="experiment_ann_buyer_data_only"
     )
     
     
@@ -409,8 +423,8 @@ def create_pipeline(**kwargs):
            initial_data_splitting_for_experiments,
         #    experiment_decision_tree_buyer_data_only,
         #    experiment_logistic_regression_buyer_data_only
-           experiment_svm_buyer_data_only
-            
+        #    experiment_svm_buyer_data_only
+           experiment_ann_buyer_data_only
 
         #    prepare_inflation_data_node,
         #    inflation_rates_averages_node,

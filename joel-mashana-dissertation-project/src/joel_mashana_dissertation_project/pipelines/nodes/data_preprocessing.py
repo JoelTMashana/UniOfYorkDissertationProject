@@ -19,7 +19,7 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-import tensorflow 
+import tensorflow  
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import statsmodels.api as sm
@@ -27,6 +27,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
 from scipy.stats import expon, reciprocal
 from sklearn.feature_selection import RFE
+import random
+import os
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -673,7 +675,62 @@ def train_svm_experimental(X_train, y_train, X_validate, y_validate, model_name,
     precision = print_and_return_precision(y_validate, predictions)
     recall = print_and_return_recall(y_validate, predictions)
 
+    print("Confusion Matrix:\n", confusion_matrix_values)
     tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+def train_ann_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
+    
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
+
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    model = Sequential([
+        Dense(30, activation='relu', input_shape=(X_train.shape[1],)),
+        Dense(16, activation='relu'),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+    
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+
+    # For binary cross entropy, may need to change labels in pre processing
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+    model.fit( X_train, y_train, epochs=10, batch_size=64)
+
+    y_pred_probs = model.predict(X_validate).ravel()
+    predictions = np.round(y_pred_probs)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf( model, X_validate, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
 
     return {
         'accuracy': accuracy,
