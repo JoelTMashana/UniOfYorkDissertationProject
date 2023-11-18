@@ -6,7 +6,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
                                        split_train_test_validate,  smote_oversample_minority_class, standard_scale_data,
-                                       train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental
+                                       train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental,
+                                       train_logistic_regression_experimental
                                        )
 def create_pipeline(**kwargs):
     
@@ -111,6 +112,20 @@ def create_pipeline(**kwargs):
         },
         outputs="metrics",
         name="execute_decision_tree_node"
+    )
+
+    experiment_logistic_regression_buyer_data_only = node (
+        train_logistic_regression_experimental,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:logistic_regression",
+            "exclude_column": "params:period"
+        },
+        outputs="metrics",
+        name="experiment_logistic_regression_buyer_data_only"
     )
     
     
@@ -378,7 +393,8 @@ def create_pipeline(**kwargs):
            determine_and_assign_risk_levels_buyer_data_node,
            mean_imputation_for_experimental_data_node,
            initial_data_splitting_for_experiments,
-           experiment_decision_tree_buyer_data_only
+        #    experiment_decision_tree_buyer_data_only,
+        #    experiment_logistic_regression_buyer_data_only
             
 
         #    prepare_inflation_data_node,

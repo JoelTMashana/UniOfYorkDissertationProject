@@ -444,49 +444,6 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
 
 
-
-def train_decision_tree_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
-    
-    
-    X_train = X_train.drop(columns=exclude_column)
-    X_validate = X_validate.drop(columns=exclude_column)
-
-    decision_tree = DecisionTreeClassifier(random_state=42)
-
-    decision_tree.fit(X_train, y_train)
-
-
-    predictions = decision_tree.predict(X_validate)
-
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc(decision_tree, X_validate, y_validate)
-
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-    report = store_and_print_classification_report(y_validate, predictions)
-    return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn,
-    }
-
-
-
-
-
-
 def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
 
     param_dist = {
@@ -517,10 +474,6 @@ def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_na
     auc = print_auc(best_model, X_validate, y_validate)
 
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
-
-
-
-
 
 
 def train_svm(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
@@ -584,8 +537,6 @@ def train_logistic_regression_for_rfe(X_train, y_train, X_validate, y_validate, 
         'Ranking': rfe.ranking_[rfe.support_]
     })
    
-
-
     return logistic_regression_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), selected_features
 
 def train_ann(X_train, y_train, X_validate, y_validate, model_name, important_features_df):
@@ -630,6 +581,105 @@ def train_ann(X_train, y_train, X_validate, y_validate, model_name, important_fe
 
 
     return model#, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]})
+
+
+
+def train_decision_tree_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
+    
+    
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
+
+    decision_tree = DecisionTreeClassifier(random_state=42)
+
+    decision_tree.fit(X_train, y_train)
+
+
+    predictions = decision_tree.predict(X_validate)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(decision_tree, X_validate, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    report = store_and_print_classification_report(y_validate, predictions)
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+def train_logistic_regression_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
+  
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
+
+    logistic_regression_model = LogisticRegression(random_state=42)
+
+    logistic_regression_model.fit(X_train, y_train)
+
+    predictions = logistic_regression_model.predict(X_validate)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(logistic_regression_model, X_validate, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+def train_svm_experimental(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+    #not working
+    param_dist = {
+        'C': reciprocal(0.1, 10),
+        'kernel': ['linear', 'sigmoid'],
+        'degree': [2, 3, 4, 5]
+    }
+    svm_model = SVC()
+    random_search = RandomizedSearchCV(svm_model, param_distributions=param_dist, 
+                                    n_iter=number_of_iterations, cv=5, verbose=2, random_state=42, n_jobs=-1)
+    
+    random_search.fit(X_train, y_train)
+
+    best_params = random_search.best_params_
+    best_model = random_search.best_estimator_
+
+    y_pred = best_model.predict(X_validate)
+
+    print_model_name(model_name)
+
+    accuracy = calculate_accuracy(y_validate, y_pred)
+    report =  store_and_print_classification_report(y_validate, y_pred)
+    auc = print_auc(best_model, X_validate, y_validate)
+
+    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
 
 
 ### Evaluation ##########################################################
