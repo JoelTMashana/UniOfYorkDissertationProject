@@ -655,31 +655,37 @@ def train_logistic_regression_experimental(X_train, y_train, X_validate, y_valid
         'confusion_matrix_fn': fn,
     }
 
-def train_svm_experimental(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
-    #not working
-    param_dist = {
-        'C': reciprocal(0.1, 10),
-        'kernel': ['linear', 'sigmoid'],
-        'degree': [2, 3, 4, 5]
-    }
-    svm_model = SVC()
-    random_search = RandomizedSearchCV(svm_model, param_distributions=param_dist, 
-                                    n_iter=number_of_iterations, cv=5, verbose=2, random_state=42, n_jobs=-1)
-    
-    random_search.fit(X_train, y_train)
+def train_svm_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
 
-    best_params = random_search.best_params_
-    best_model = random_search.best_estimator_
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
 
-    y_pred = best_model.predict(X_validate)
+    svm_model = SVC(kernel='linear', probability=True)    
+    svm_model.fit(X_train, y_train)
+    predictions = svm_model.predict(X_validate)
 
     print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc( svm_model, X_validate, y_validate)
 
-    accuracy = calculate_accuracy(y_validate, y_pred)
-    report =  store_and_print_classification_report(y_validate, y_pred)
-    auc = print_auc(best_model, X_validate, y_validate)
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
 
-    return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}),  pd.DataFrame({'best params': [best_params]})
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
 
 
 ### Evaluation ##########################################################
