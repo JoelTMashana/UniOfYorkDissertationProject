@@ -95,6 +95,20 @@ combined_data_set_invoices_missed_robust_scaled:
 
 
 # Dataset with target variable created -------------------
+
+
+buyer_payement_practise_data_with_risk_levels:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/buyer_payement_practise_data_with_risk_levels.csv
+  versioned: true
+
+
+buyer_payment_practice_dataset_mean_imputed:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/buyer_payment_practice_dataset_mean_imputed.csv
+  versioned: true
+
+
 combined_data_set_with_risk_levels:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/combined_data_set_with_risk_levels.csv
@@ -205,6 +219,32 @@ y_test_for_rfe:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/y_test_for_rfe.csv
 
+
+
+## Experimental 
+X_train_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train_experimental.csv
+
+X_validate_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_validate_experimental.csv
+
+X_test_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_test_experimental.csv
+
+y_train_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train_experimental.csv
+
+y_validate_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_validate_experimental.csv
+
+y_test_experimental:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_test_experimental.csv
 
 
 
@@ -352,3 +392,9 @@ probit_performance_metrics:
   filepath: data/07_model_output/probit_performance_metrics.csv
 
 
+
+
+
+metrics:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics.json

@@ -1,27 +1,13 @@
 ### Experiments
 
-Remember to experiment with and without PCA
+Experiments that need to be run 
 
-1. Decision tree algorithms without PCA
-Accuracy scores were perfect suggesting overfitting despite pruning.
-2. Decision Tree algorithm with PCA
-Score looks more realistic, reduced to 3 PCA's
-    Accuracy: 0.9485815602836879
-    Classification Report:
-                precision    recall  f1-score   support
-
-            1       0.96      0.97      0.97       828
-            2       0.92      0.88      0.90       300
-
-        accuracy                           0.95      1128
-    macro avg       0.94      0.93      0.93      1128
-    weighted avg       0.95      0.95      0.95      1128
-
---- 828 vs 300, class imbalance, suggests a need for difference approach
-potential justification for using AUC and ROC for analysis. 
-3. AUC: 0.9267149758454105 suggests that the model has a strong ability to distinguish 
-betwen the positive and negative classes.
-4. Initial run of logistic regression suggests that it is only predicting one class. Possibly due to
-class imbalance
-5. SVM has similar issues
-6. large negative value for loss function requires inspecting
+1. Comparison between the models with and without GDP Data.
+2. Comparison of the Models with and without PCA 
+3. Comparison of the models with and withtout Smote oversampling
+4. Comparison of a Regression vs Classification 
+5. Once above identified, comparision of the models with different train test  splits
+6. Once consistent preprocessing steps identified across all models. Hyperparameter tuning initially using 
+random search and if time allows implement hill climbing, simulated annealing or genetic algorithm.
+7. If time allows comparison of models with and without outliers included.
+8. Consider comparing results when full dataset is used opposed to subset where scf offered == true.

@@ -6,7 +6,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        mean_imputation, robust_scale_column, perform_kmeans_clustering, scale_and_apply_pca,
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
                                        split_train_test_validate,  smote_oversample_minority_class, standard_scale_data,
-                                       train_logistic_regression_for_rfe, split_train_test_validate_rfe
+                                       train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental
                                        )
 def create_pipeline(**kwargs):
     
@@ -67,6 +67,53 @@ def create_pipeline(**kwargs):
         outputs="buyer_payment_practices_filtered_encoded_final",
         name="align_columns_node"
     )
+
+    
+    determine_and_assign_risk_levels_buyer_data_node = node(
+        perform_kmeans_clustering,
+        inputs = {
+            "data": "buyer_payment_practices_filtered_encoded_final", 
+            "column_to_cluster": "params:column_for_clustering"
+        },
+        outputs = "buyer_payement_practise_data_with_risk_levels",
+        name="determine_and_assign_risk_levels_node"
+    )
+
+    mean_imputation_for_experimental_data_node = node(
+        mean_imputation,
+        inputs= {
+            "data": "buyer_payement_practise_data_with_risk_levels",
+            "exclude_column": "params:columns_to_exclude_for_imputation"
+        },
+        outputs="buyer_payment_practice_dataset_mean_imputed",
+        name="mean_imputation_for_experimental_data_node"
+    )
+
+    initial_data_splitting_for_experiments = node (
+        split_train_test_validate,
+         inputs = {
+            "data": "buyer_payment_practice_dataset_mean_imputed",
+            "target_column": "params:target"
+        },
+        outputs = ["X_train_experimental","X_validate_experimental", " X_test_experimental", "y_train_experimental", "y_validate_experimental", "y_test_experimental"],
+        name="initial_data_splitting_for_experiments"
+    )
+
+    experiment_decision_tree_buyer_data_only = node (
+        train_decision_tree_experimental,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:decision_tree",
+            "exclude_column": "params:period"
+        },
+        outputs="metrics",
+        name="execute_decision_tree_node"
+    )
+    
+    
 
     prepare_inflation_data_node = node(
         prepare_inflation_data,
@@ -326,27 +373,35 @@ def create_pipeline(**kwargs):
            anonymise_data_node,
            encode_column_payments_made_in_the_reporting_period,
            align_columns_node,
+
+           ## Experimental nodes
+           determine_and_assign_risk_levels_buyer_data_node,
+           mean_imputation_for_experimental_data_node,
+           initial_data_splitting_for_experiments,
+           experiment_decision_tree_buyer_data_only
+            
+
         #    prepare_inflation_data_node,
         #    inflation_rates_averages_node,
-           monthly_gdp_headers_removed_node,
-           calculate_monthly_gdp_averages_node,
-           combine_datasets_node,
-           convert_payment_practise_column_data_to_floats_node,
-           peform_mean_imputation_on_combined_dataset_node,
-        #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
-           determine_and_assign_risk_levels_node,
-           apply_principle_component_analysis_node,
-           split_data_train_test_validate_node,
-           ### Excute models
-           execute_decision_tree_node,
-           smote_oversample_minority_class_node,
-           execute_logistic_regression_node,
-           execute_svm_node,
-           scale_data_for_ann_node,
-           split_data_train_test_validate_for_ann_node,
-           split_data_train_test_validate_rfe_node,
-           recursive_feature_elimination_node,
-           execute_ann_node,
+        #    monthly_gdp_headers_removed_node,
+        #    calculate_monthly_gdp_averages_node,
+        #    combine_datasets_node,
+        #    convert_payment_practise_column_data_to_floats_node,
+        #    peform_mean_imputation_on_combined_dataset_node,
+        # #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
+        #    determine_and_assign_risk_levels_node,
+        #    apply_principle_component_analysis_node,
+        #    split_data_train_test_validate_node,
+        #    ### Excute models
+        #    execute_decision_tree_node,
+        #    smote_oversample_minority_class_node,
+        #    execute_logistic_regression_node,
+        #    execute_svm_node,
+        #    scale_data_for_ann_node,
+        #    split_data_train_test_validate_for_ann_node,
+        #    split_data_train_test_validate_rfe_node,
+        #    recursive_feature_elimination_node,
+        #    execute_ann_node,
             
         ]
     )
