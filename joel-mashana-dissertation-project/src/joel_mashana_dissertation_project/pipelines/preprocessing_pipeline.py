@@ -615,8 +615,8 @@ def create_pipeline(**kwargs):
 
            ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
 
-           mean_imputation_for_experimental_data_node,
-           experiment_varied_train_test_validate_split_node,
+        #    mean_imputation_for_experimental_data_node,
+        #    experiment_varied_train_test_validate_split_node,
         #    experiment_decision_tree_buyer_data_only_scaled_varied_splits,
         #    experiment_svm_buyer_data_only_scaled_varied_splits,
         #    experiment_ann_buyer_data_only_scaled_varied_splits,
