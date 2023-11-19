@@ -61,4 +61,4 @@ number_of_features_to_select: 99 # 99
 period: "Period"
 
 
-split_num: 1
+split_num: 10
