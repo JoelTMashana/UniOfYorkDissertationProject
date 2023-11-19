@@ -7,7 +7,9 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_decision_tree, train_logistic_regression, train_svm, train_ann, calculate_accuracy,
                                        split_train_test_validate,  smote_oversample_minority_class, standard_scale_data,
                                        train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental,
-                                       train_logistic_regression_experimental, train_svm_experimental, train_ann_experimental
+                                       train_svm_experimental, train_ann_experimental,
+                                       train_logistic_regression_experimental_rfe, train_logistic_regression_experimental, split_train_test_validate_smote_applied,
+                                       train_ann_experimental_feature_selected
                                        )
 def create_pipeline(**kwargs):
     
@@ -77,7 +79,7 @@ def create_pipeline(**kwargs):
             "column_to_cluster": "params:column_for_clustering"
         },
         outputs = "buyer_payement_practise_data_with_risk_levels",
-        name="determine_and_assign_risk_levels_node"
+        name="determine_and_assign_risk_levels_buyer_data_node"
     )
 
     mean_imputation_for_experimental_data_node = node(
@@ -100,19 +102,19 @@ def create_pipeline(**kwargs):
         name="initial_data_splitting_for_experiments"
     )
 
-    experiment_decision_tree_buyer_data_only = node (
-        train_decision_tree_experimental,
-        inputs={
-            "X_train": "X_train_experimental",
-            "y_train": "y_train_experimental",
-            "X_validate": "X_validate_experimental",
-            "y_validate": "y_validate_experimental",
-            "model_name":  "params:decision_tree",
-            "exclude_column": "params:period"
-        },
-        outputs="metrics",
-        name="execute_decision_tree_node"
-    )
+    # experiment_decision_tree_buyer_data_only = node (
+    #     train_decision_tree_experimental,
+    #     inputs={
+    #         "X_train": "X_train_experimental",
+    #         "y_train": "y_train_experimental",
+    #         "X_validate": "X_validate_experimental",
+    #         "y_validate": "y_validate_experimental",
+    #         "model_name":  "params:decision_tree",
+    #         "exclude_column": "params:period"
+    #     },
+    #     outputs="metrics",
+    #     name="execute_decision_tree_node"
+    # )
 
     experiment_logistic_regression_buyer_data_only = node (
         train_logistic_regression_experimental,
@@ -156,6 +158,67 @@ def create_pipeline(**kwargs):
         name="experiment_ann_buyer_data_only"
     )
     
+
+    combined_data_splitting_for_experiments = node (
+        split_train_test_validate_smote_applied,
+         inputs = {
+            "data": "combined_data_set_with_risk_levels",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude"
+        },
+        outputs = ["X_train_experimental_gdp_data_included","X_validate_experimental_gdp_data_included", " X_test_experimental_gdp_data_included", "y_train_experimental_gdp_data_included", "y_validate_experimental_gdp_data_included", "y_test_experimental_gdp_data_included"],
+        name="combined_data_splitting_for_experiments"
+    )
+
+    recursive_feature_elimination_node_for_experiments = node(
+        train_logistic_regression_experimental_rfe,
+        inputs={
+            "X_train": "X_train_experimental_gdp_data_included",
+            "y_train": "y_train_experimental_gdp_data_included",
+            "X_validate": "X_validate_experimental_gdp_data_included",
+            "y_validate": "y_validate_experimental_gdp_data_included",
+            "model_name": "params:logistic_regression",
+            "number_of_features_to_select": "params:number_of_features_to_select",
+            "exclude_column": "params:period"
+        },
+        outputs=[
+            "metrics",
+            "logistic_regression_model_rfe_experimental"
+        ],
+        name="recursive_feature_elimination_node_for_experiments"
+    )
+
+
+
+    experiment_decision_tree_combinded_dataset_node = node (
+        train_decision_tree_experimental,
+        inputs={
+            "X_train": "X_train_experimental_gdp_data_included",
+            "y_train": "y_train_experimental_gdp_data_included",
+            "X_validate": "X_validate_experimental_gdp_data_included",
+            "y_validate": "y_validate_experimental_gdp_data_included",
+            "model_name":  "params:decision_tree",
+            "exclude_column": "params:period",
+            "important_features": "logistic_regression_model_rfe_experimental"
+        },
+        outputs="metrics",
+        name="experiment_decision_tree_combinded_dataset_node"
+    )
+    
+    experiment_ann_combinded_dataset_node = node (
+        train_ann_experimental_feature_selected,
+        inputs={
+            "X_train": "X_train_experimental_gdp_data_included",
+            "y_train": "y_train_experimental_gdp_data_included",
+            "X_validate": "X_validate_experimental_gdp_data_included",
+            "y_validate": "y_validate_experimental_gdp_data_included",
+            "model_name":  "params:ann",
+            "important_features": "logistic_regression_model_rfe_experimental"
+
+        },
+        outputs="metrics",
+        name="experiment_ann_combinded_dataset_node"
+    )
     
 
     prepare_inflation_data_node = node(
@@ -417,27 +480,33 @@ def create_pipeline(**kwargs):
            encode_column_payments_made_in_the_reporting_period,
            align_columns_node,
 
-           ## Experimental nodes
-           determine_and_assign_risk_levels_buyer_data_node,
-           mean_imputation_for_experimental_data_node,
-           initial_data_splitting_for_experiments,
+           ## Experimental nodes -- Buyer Data Only
+        #    determine_and_assign_risk_levels_buyer_data_node,
+        #    mean_imputation_for_experimental_data_node,
+        #    initial_data_splitting_for_experiments,
         #    experiment_decision_tree_buyer_data_only,
         #    experiment_logistic_regression_buyer_data_only
         #    experiment_svm_buyer_data_only
-           experiment_ann_buyer_data_only
+        #    experiment_ann_buyer_data_only
 
-        #    prepare_inflation_data_node,
-        #    inflation_rates_averages_node,
-        #    monthly_gdp_headers_removed_node,
-        #    calculate_monthly_gdp_averages_node,
-        #    combine_datasets_node,
-        #    convert_payment_practise_column_data_to_floats_node,
-        #    peform_mean_imputation_on_combined_dataset_node,
-        # #    robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
-        #    determine_and_assign_risk_levels_node,
+           monthly_gdp_headers_removed_node,
+           calculate_monthly_gdp_averages_node,
+           combine_datasets_node,
+           convert_payment_practise_column_data_to_floats_node,
+           peform_mean_imputation_on_combined_dataset_node,
+        #     robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
+           determine_and_assign_risk_levels_node,
+
+
+           ## Experimental nodes -- Combined dataset
+           combined_data_splitting_for_experiments,
+        #    recursive_feature_elimination_node_for_experiments, 
+        #    experiment_decision_tree_combinded_dataset_node
+        #    experiment_ann_combinded_dataset_node,
         #    apply_principle_component_analysis_node,
         #    split_data_train_test_validate_node,
-        #    ### Excute models
+        
+        #    ### Final Models
         #    execute_decision_tree_node,
         #    smote_oversample_minority_class_node,
         #    execute_logistic_regression_node,

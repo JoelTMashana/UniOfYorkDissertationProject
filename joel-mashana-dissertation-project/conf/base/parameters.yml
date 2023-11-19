@@ -55,7 +55,7 @@ number_of_iterations_randomised_search: 100
 
 
 #rfe
-number_of_features_to_select: 30 # 30 - 60 seems to be sweet spot, play later
+number_of_features_to_select: 99 # 99
 
 
 period: "Period"
