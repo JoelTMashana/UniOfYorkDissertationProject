@@ -247,6 +247,35 @@ y_test_experimental:
   filepath: data/02_intermediate/y_test_experimental.csv
 
 
+### split variation
+
+X_train_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train_experimental_split_variations.csv
+
+X_validate_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_validate_experimental_split_variations.csv
+
+X_test_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_test_experimental_split_variations.csv
+
+y_train_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train_experimental_split_variations.csv
+
+y_validate_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_validate_experimental_split_variations.csv
+
+y_test_experimental_split_variations:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_test_experimental_split_variations.csv
+
+
+
+
 ## Experimental 
 X_train_experimental_gdp_data_included:
   type: pandas.CSVDataSet
@@ -428,3 +457,8 @@ probit_performance_metrics:
 metrics:
   type: tracking.MetricsDataSet
   filepath: data/09_tracking/metrics.json
+
+
+
+
+

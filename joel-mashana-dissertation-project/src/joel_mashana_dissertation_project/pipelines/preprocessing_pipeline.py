@@ -9,7 +9,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_logistic_regression_for_rfe, split_train_test_validate_rfe, train_decision_tree_experimental,
                                        train_svm_experimental, train_ann_experimental,
                                        train_logistic_regression_experimental_rfe, train_logistic_regression_experimental, split_train_test_validate_smote_applied,
-                                       train_ann_experimental_feature_selected
+                                       train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
+                                       train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits
                                        )
 def create_pipeline(**kwargs):
     
@@ -102,6 +103,17 @@ def create_pipeline(**kwargs):
         name="initial_data_splitting_for_experiments"
     )
 
+    initial_data_splitting_for_smote_applied = node (
+        split_train_test_validate_smote_applied,
+        inputs = {
+            "data": "buyer_payment_practice_dataset_mean_imputed",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude"
+        },
+        outputs = ["X_train_experimental","X_validate_experimental", " X_test_experimental", "y_train_experimental", "y_validate_experimental", "y_test_experimental"],
+        name="initial_data_splitting_for_smote_applied"
+    )
+
     # experiment_decision_tree_buyer_data_only = node (
     #     train_decision_tree_experimental,
     #     inputs={
@@ -157,7 +169,66 @@ def create_pipeline(**kwargs):
         outputs="metrics",
         name="experiment_ann_buyer_data_only"
     )
+
+
+    experiment_decision_tree_buyer_data_only_scaled = node (
+        train_decision_tree_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:decision_tree"
+        },
+        outputs="metrics",
+        name="experiment_decision_tree_buyer_data_only_scaled"
+    )
+
+    experiment_logistic_regression_buyer_data_only_scaled  = node (
+        train_logistic_regression_experimental,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:logistic_regression",
+            "exclude_column": "params:period"
+        },
+        outputs="metrics",
+        name="experiment_logistic_regression_buyer_data_only_scaled"
+    )
+
+    experiment_svm_buyer_data_only_scaled = node (
+        train_svm_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:svm"
+        },
+        outputs="metrics",
+        name="experiment_svm_buyer_data_only_scaled"
+    )
     
+    experiment_ann_buyer_data_only_scaled  = node (
+        train_ann_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental",
+            "y_train": "y_train_experimental",
+            "X_validate": "X_validate_experimental",
+            "y_validate": "y_validate_experimental",
+            "model_name":  "params:ann"
+        },
+        outputs="metrics",
+        name="experiment_ann_buyer_data_only_scaled"
+    )
+    
+
+
+
+
+
 
     combined_data_splitting_for_experiments = node (
         split_train_test_validate_smote_applied,
@@ -170,7 +241,7 @@ def create_pipeline(**kwargs):
         name="combined_data_splitting_for_experiments"
     )
 
-    recursive_feature_elimination_node_for_experiments = node(
+    experiments_recursive_feature_elimination_node = node(
         train_logistic_regression_experimental_rfe,
         inputs={
             "X_train": "X_train_experimental_gdp_data_included",
@@ -185,7 +256,7 @@ def create_pipeline(**kwargs):
             "metrics",
             "logistic_regression_model_rfe_experimental"
         ],
-        name="recursive_feature_elimination_node_for_experiments"
+        name="experiments_recursive_feature_elimination_node"
     )
 
 
@@ -220,6 +291,66 @@ def create_pipeline(**kwargs):
         name="experiment_ann_combinded_dataset_node"
     )
     
+
+
+
+    experiment_varied_train_test_validate_split_node = node (
+        split_train_test_validate_smote_applied_varied_splits,
+        inputs = {
+            "data": "buyer_payment_practice_dataset_mean_imputed",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:period",
+            "split_num": "params:split_num"
+        },
+        outputs = ["X_train_experimental_split_variations","X_validate_experimental_split_variations", " X_test_experimental_split_variations", "y_train_experimental_split_variations", "y_validate_experimental_split_variations", "y_test_experimental_split_variations"],
+        name="experiment_varied_train_test_validate_split_node"
+    )
+
+
+    
+    experiment_decision_tree_buyer_data_only_scaled_varied_splits = node (
+        train_decision_tree_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental_split_variations",
+            "y_train": "y_train_experimental_split_variations",
+            "X_validate": "X_validate_experimental_split_variations",
+            "y_validate": "y_validate_experimental_split_variations",
+            "model_name":  "params:decision_tree"
+        },
+        outputs="metrics",
+        name="experiment_decision_tree_buyer_data_only_scaled_varied_splits"
+    )
+
+    experiment_svm_buyer_data_only_scaled_varied_splits = node (
+        train_svm_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental_split_variations",
+            "y_train": "y_train_experimental_split_variations",
+            "X_validate": "X_validate_experimental_split_variations",
+            "y_validate": "y_validate_experimental_split_variations",
+            "model_name":  "params:svm"
+        },
+        outputs="metrics",
+        name="experiment_svm_buyer_data_only_scaled_varied_splits"
+    )
+    
+    experiment_ann_buyer_data_only_scaled_varied_splits  = node (
+        train_ann_experimental_scaled,
+        inputs={
+            "X_train": "X_train_experimental_split_variations",
+            "y_train": "y_train_experimental_split_variations",
+            "X_validate": "X_validate_experimental_split_variations",
+            "y_validate": "y_validate_experimental_split_variations",
+            "model_name":  "params:ann"
+        },
+        outputs="metrics",
+        name="experiment_ann_buyer_data_only_scaled_varied_splits"
+    )
+
+
+
+
+
 
     prepare_inflation_data_node = node(
         prepare_inflation_data,
@@ -469,6 +600,7 @@ def create_pipeline(**kwargs):
         name="recursive_feature_elimination_node"
     )
 
+  
    
     return Pipeline(
         [ 
@@ -479,6 +611,24 @@ def create_pipeline(**kwargs):
            anonymise_data_node,
            encode_column_payments_made_in_the_reporting_period,
            align_columns_node,
+           determine_and_assign_risk_levels_buyer_data_node,
+
+           ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
+
+           mean_imputation_for_experimental_data_node,
+           experiment_varied_train_test_validate_split_node,
+        #    experiment_decision_tree_buyer_data_only_scaled_varied_splits
+        #    experiment_svm_buyer_data_only_scaled_varied_splits
+           experiment_ann_buyer_data_only_scaled_varied_splits 
+
+
+        ## Experimantal nodes -- Buyer data only, smote applied and standard scaled
+        #    initial_data_splitting_for_experiments,
+        #    initial_data_splitting_for_smote_applied,
+        #    experiment_decision_tree_buyer_data_only_scaled
+        #    experiment_ann_buyer_data_only_scaled,
+        #    experiment_svm_buyer_data_only_scaled
+           
 
            ## Experimental nodes -- Buyer Data Only
         #    determine_and_assign_risk_levels_buyer_data_node,
@@ -489,23 +639,28 @@ def create_pipeline(**kwargs):
         #    experiment_svm_buyer_data_only
         #    experiment_ann_buyer_data_only
 
-           monthly_gdp_headers_removed_node,
-           calculate_monthly_gdp_averages_node,
-           combine_datasets_node,
-           convert_payment_practise_column_data_to_floats_node,
-           peform_mean_imputation_on_combined_dataset_node,
-        #     robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
-           determine_and_assign_risk_levels_node,
+            ### Probably will remove all noderelated to gdp data
+        #    monthly_gdp_headers_removed_node,
+        #    calculate_monthly_gdp_averages_node,
+        #    combine_datasets_node,
+        #    convert_payment_practise_column_data_to_floats_node,
+        #    peform_mean_imputation_on_combined_dataset_node,
+        # #     robust_scale_percentage_invoices_not_paid_on_agreed_terms_column_node,
+        #    determine_and_assign_risk_levels_node,
+
 
 
            ## Experimental nodes -- Combined dataset
-           combined_data_splitting_for_experiments,
-        #    recursive_feature_elimination_node_for_experiments, 
+        #    combined_data_splitting_for_experiments,
+        #    experiments_recursive_feature_elimination_node, 
         #    experiment_decision_tree_combinded_dataset_node
         #    experiment_ann_combinded_dataset_node,
+
+
+
         #    apply_principle_component_analysis_node,
         #    split_data_train_test_validate_node,
-        
+
         #    ### Final Models
         #    execute_decision_tree_node,
         #    smote_oversample_minority_class_node,

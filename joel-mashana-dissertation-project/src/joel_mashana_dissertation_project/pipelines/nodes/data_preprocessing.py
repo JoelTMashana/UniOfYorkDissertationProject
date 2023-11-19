@@ -420,6 +420,19 @@ def split_train_test_validate_smote_applied(data, target_column, columns_to_excl
     return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
 
 
+def split_train_test_validate_smote_applied_varied_splits(data, target_column, columns_to_exclude, split_num):
+    X = data.drop(columns=[columns_to_exclude, target_column]) 
+    y = data[target_column]
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=split_num)
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=split_num)  
+
+    smote = SMOTE(random_state=split_num)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
+    return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
+
+
 def split_train_test_validate_rfe(data, target_column, columns_to_exclude):
     X = data
     # X = data.drop(columns=[columns_to_exclude])
@@ -769,6 +782,136 @@ def train_ann_experimental(X_train, y_train, X_validate, y_validate, model_name,
         'confusion_matrix_fn': fn,
     }
 
+
+def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    model = Sequential([
+        Dense(30, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+        Dense(16, activation='relu'),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+    
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+    model.fit(X_train_scaled, y_train, epochs=10, batch_size=64)
+
+    y_pred_probs = model.predict(X_validate_scaled).ravel()
+    predictions = np.round(y_pred_probs)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf(model, X_validate_scaled, y_validate)
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+
+def train_decision_tree_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+    
+    # # Drop excluded columns
+    # X_train = X_train.drop(columns=exclude_column)
+    # X_validate = X_validate.drop(columns=exclude_column)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    assert 'Period' not in X_train.columns, "Period Column should not be in the training set"
+    assert 'Period' not in X_validate.columns, "Period Column should not be in the validation set"
+
+    decision_tree = DecisionTreeClassifier(random_state=42)
+
+    decision_tree.fit(X_train_scaled, y_train)
+
+
+    predictions = decision_tree.predict(X_validate_scaled)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(decision_tree, X_validate_scaled, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    report = store_and_print_classification_report(y_validate, predictions)
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+def train_svm_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    svm_model = SVC(kernel='linear', probability=True)    
+    svm_model.fit(X_train_scaled , y_train)
+    predictions = svm_model.predict(X_validate_scaled)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc( svm_model, X_validate_scaled, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    print("Confusion Matrix:\n", confusion_matrix_values)
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
 
 
 def train_ann_experimental_feature_selected(X_train, y_train, X_validate, y_validate, model_name, important_features):
