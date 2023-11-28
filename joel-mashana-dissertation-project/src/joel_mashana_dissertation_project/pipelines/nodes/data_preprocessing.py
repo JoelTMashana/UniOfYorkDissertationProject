@@ -510,6 +510,85 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
 
 
+def get_hyperparameter_ranges(random_search, top_percentage=0.2):
+    
+    results_df = pd.DataFrame(random_search.cv_results_)
+    top_results = results_df.sort_values('rank_test_score').head(int(len(results_df) * top_percentage))
+
+    continuous_params_df = pd.DataFrame({
+        'min_samples_split': [
+            round(top_results['param_min_samples_split'].quantile(0.25)), 
+            round(top_results['param_min_samples_split'].quantile(0.75))
+        ],
+        'min_samples_leaf': [
+            round(top_results['param_min_samples_leaf'].quantile(0.25)), 
+            round(top_results['param_min_samples_leaf'].quantile(0.75))
+        ]
+    })
+
+   # Discrete parameters - selecting the most frequent value
+    max_depth_value = top_results['param_max_depth'].value_counts().idxmax()
+    criterion_value = top_results['param_criterion'].value_counts().idxmax()
+
+    discrete_params_df = pd.DataFrame({
+        'max_depth': [max_depth_value],
+        'criterion': [criterion_value]
+    })
+
+
+    return continuous_params_df, discrete_params_df
+
+
+
+
+
+def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+    
+    ## Still need to apply smote and standard scaling
+    param_dist = {
+        "max_depth": [3, 5, 10, 15, 20, None],
+        "min_samples_split": range(2, 50),
+        "min_samples_leaf": range(1, 50),
+        "criterion": ["gini", "entropy"]
+    }
+
+    decision_tree = DecisionTreeClassifier(random_state=42)
+    random_search = RandomizedSearchCV(decision_tree, param_distributions=param_dist, 
+                                       n_iter=number_of_iterations, cv=2, random_state=42)
+    random_search.fit(X_train, y_train)
+
+    best_model = random_search.best_estimator_
+    predictions = best_model.predict(X_validate)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(best_model, X_validate, y_validate)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    metrics = {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall
+    }
+
+    # Get hyperparameter ranges
+    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
+
+    
+
+    return {
+        "metrics": metrics,
+        "continuous_params": continuous_params_df,
+        "discrete_params": discrete_params_df
+    }
+
+
+
+
 def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
 
     param_dist = {

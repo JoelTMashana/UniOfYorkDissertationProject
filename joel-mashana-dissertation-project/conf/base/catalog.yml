@@ -488,4 +488,18 @@ metrics:
 
 
 
+### Hyperparameter ranges
+decision_tree_continuous_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/decision_tree_continuous_hyperparameters.csv
+    versioned: true
+
+decision_tree_discrete_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/decision_tree_discrete_hyperparameters.csv
+    versioned: true
+
+
+
+
 
