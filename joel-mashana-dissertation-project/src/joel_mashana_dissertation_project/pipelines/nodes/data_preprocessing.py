@@ -393,6 +393,39 @@ def standard_scale_data(data, columns_to_exclude, target_column):
 
 # ###### ML Algorithms
 
+
+def main_split_train_test_validate(data, target_column, columns_to_exclude):
+    # Initial number of columns
+    initial_number_of_columns = data.shape[1]
+
+    X = data.drop(columns=[columns_to_exclude, target_column]) 
+    y = data[target_column]
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    # Assertions
+    assert X_train.shape[1] ==  initial_number_of_columns - 2, "X_train should have one less column than the initial dataset"
+    assert X_validate.shape[1] ==  initial_number_of_columns - 2, "X_validate should have one less column than the initial dataset"
+    assert X_test.shape[1] ==  initial_number_of_columns - 2, "X_test should have one less column than the initial dataset"
+    
+    assert 'Risk Level' not in X_train.columns, "Risk Level should not be in X_train"
+    assert 'Risk Level' not in X_validate.columns, "Risk Level should not be in X_validate"
+    assert 'Risk Level' not in X_test.columns, "Risk Level should not be in X_test"
+
+    assert y_train.ndim == 1, "y_train should only have one column"
+    assert y_validate.ndim == 1, "y_validate should only have one column"
+    assert y_test.ndim == 1, "y_test should only have one column"
+
+    assert y_train.name == 'Risk Level', "y_train should have the column name 'Risky Level'"
+    assert y_validate.name == 'Risk Level', "y_validate should have the column name 'Risky Level'"
+    assert y_test.name == 'Risk Level', "y_test should have the column name 'Risky Level'"
+
+    return X_train, X_validate, X_test, y_train, y_validate, y_test
+
+
+
+
 def split_train_test_validate(data, target_column):
     X = data
     y = data[target_column]
@@ -403,6 +436,8 @@ def split_train_test_validate(data, target_column):
     X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
 
     return X_train, X_validate, X_test, y_train, y_validate, y_test
+
+
 
 
 

@@ -276,7 +276,7 @@ y_test_experimental_split_variations:
 
 
 
-## Experimental 
+## Experimental GDP data included
 X_train_experimental_gdp_data_included:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/X_train_experimental_gdp_data_included.csv
@@ -300,6 +300,33 @@ y_validate_experimental_gdp_data_included:
 y_test_experimental_gdp_data_included:
   type: pandas.CSVDataSet
   filepath: data/02_intermediate/y_test_experimental_gdp_data_included.csv
+
+
+## Final Train test split 
+
+X_train_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_train_main.csv
+
+X_validate_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_validate_main.csv
+
+X_test_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/X_test_main.csv
+
+y_train_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_train_main.csv
+
+y_validate_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_validate_main.csv
+
+y_test_main:
+  type: pandas.CSVDataSet
+  filepath: data/02_intermediate/y_test_main.csv
 
 
 # Models ------------------------------------------------

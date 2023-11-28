@@ -10,7 +10,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_svm_experimental, train_ann_experimental,
                                        train_logistic_regression_experimental_rfe, train_logistic_regression_experimental, split_train_test_validate_smote_applied,
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
-                                       train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits
+                                       train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate
                                        )
 def create_pipeline(**kwargs):
     
@@ -91,6 +91,16 @@ def create_pipeline(**kwargs):
         },
         outputs="buyer_payment_practice_dataset_mean_imputed",
         name="mean_imputation_for_experimental_data_node"
+    )
+
+    mean_imputation_node = node(
+        mean_imputation,
+        inputs= {
+            "data": "buyer_payement_practise_data_with_risk_levels",
+            "exclude_column": "params:columns_to_exclude_for_imputation"
+        },
+        outputs="buyer_payment_practice_dataset_mean_imputed",
+        name="mean_imputation_node"
     )
 
     initial_data_splitting_for_experiments = node (
@@ -580,6 +590,17 @@ def create_pipeline(**kwargs):
         name="split_data_train_test_validate_rfe_node"
     )
 
+    train_test_validate_split_node = node(
+        main_split_train_test_validate,
+        inputs = {
+            "data": "buyer_payment_practice_dataset_mean_imputed",
+            "target_column": "params:target",
+            "columns_to_exclude": "params:columns_to_exclude"
+        },
+        outputs= ["X_train_main","X_validate_main", " X_test_main", "y_train_main", "y_validate_main", "y_test_main"]
+
+    )
+
     recursive_feature_elimination_node = node(
         train_logistic_regression_for_rfe,
         inputs={
@@ -612,6 +633,11 @@ def create_pipeline(**kwargs):
            encode_column_payments_made_in_the_reporting_period,
            align_columns_node,
            determine_and_assign_risk_levels_buyer_data_node,
+           mean_imputation_node,
+           train_test_validate_split_node 
+
+    
+
 
            ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
 
