@@ -630,11 +630,16 @@ def create_pipeline(**kwargs):
             "X_validate": "X_validate_main",
             "y_validate": "y_validate_main",
             "model_name": "params:decision_tree",
-            "number_of_iterations": "params:number_of_iterations_randomised_search_decision_tree"
+            "number_of_iterations": "params:number_of_iterations_randomised_search"
         },
-        outputs="metrics",
+        outputs={
+            "metrics": "metrics",
+            "continuous_params": "decision_tree_continuous_hyperparameters",
+            "discrete_params": "decision_tree_discrete_hyperparameters"
+        },
         name="find_optimal_hyperparameter_ranges_for_decision_tree_node"
     )
+
 
    
     return Pipeline(
@@ -651,6 +656,7 @@ def create_pipeline(**kwargs):
            mean_imputation_node,
            train_test_validate_split_node,
            find_optimal_hyperparameter_ranges_for_decision_tree_node
+           
 
     
 

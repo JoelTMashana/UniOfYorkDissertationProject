@@ -540,11 +540,6 @@ def get_hyperparameter_ranges(random_search, top_percentage=0.2):
 
 
 
-## Globals 
-
-continuous_params_decision_tree_df = None
-discrete_params_decision_tree_df = None
-
 def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
     ## Still need to apply smote and standard scaling
@@ -573,20 +568,26 @@ def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_valid
     
 
     # Get hyperparameter ranges
-    global continuous_params_decision_tree_df, discrete_params_decision_tree_df
-    continuous_params_decision_tree_df, discrete_params_decision_tree_df = get_hyperparameter_ranges(random_search)
+    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
 
     
 
-    return  {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall
+    return {
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
+        },
+        'continuous_params': continuous_params_df,
+        'discrete_params': discrete_params_df
     }
 
 
+def process_hyperparameters(placeholder_dataset):
+
+    return continuous_params, discrete_params
 
 
 def train_logistic_regression(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
