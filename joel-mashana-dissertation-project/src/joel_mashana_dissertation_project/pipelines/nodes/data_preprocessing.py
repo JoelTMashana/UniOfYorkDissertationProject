@@ -540,7 +540,10 @@ def get_hyperparameter_ranges(random_search, top_percentage=0.2):
 
 
 
+## Globals 
 
+continuous_params_df = None
+discrete_params_df = None
 
 def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
@@ -567,23 +570,20 @@ def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_valid
     precision = print_and_return_precision(y_validate, predictions)
     recall = print_and_return_recall(y_validate, predictions)
 
-    metrics = {
+    
+
+    # Get hyperparameter ranges
+    global continuous_params_df, discrete_params_df
+    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
+
+    
+
+    return  {
         'accuracy': accuracy,
         'auc': auc,
         'f1_score': f1,
         'precision': precision,
         'recall': recall
-    }
-
-    # Get hyperparameter ranges
-    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
-
-    
-
-    return {
-        "metrics": metrics,
-        "continuous_params": continuous_params_df,
-        "discrete_params": discrete_params_df
     }
 
 

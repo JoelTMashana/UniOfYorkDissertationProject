@@ -632,11 +632,7 @@ def create_pipeline(**kwargs):
             "model_name": "params:decision_tree",
             "number_of_iterations": "params:number_of_iterations_randomised_search_decision_tree"
         },
-        outputs={
-            "metrics": "decision_tree_metrics",
-            "continuous_params": "decision_tree_continuous_hyperparameters",
-            "discrete_params": "decision_tree_discrete_hyperparameters"
-        },
+        outputs="metrics",
         name="find_optimal_hyperparameter_ranges_for_decision_tree_node"
     )
 

@@ -53,7 +53,7 @@ probit: 'Probit'
 
 number_of_iterations_randomised_search: 100
 
-number_of_iterations_randomised_search_decision_tree: 30
+number_of_iterations_randomised_search_decision_tree: 100
 
 #rfe
 number_of_features_to_select: 99 # 99
