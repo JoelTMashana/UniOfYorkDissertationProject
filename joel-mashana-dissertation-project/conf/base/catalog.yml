@@ -500,6 +500,17 @@ decision_tree_discrete_hyperparameters:
     versioned: true
 
 
+svm_continuous_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/svm_continuous_hyperparameters.csv
+    versioned: true
+
+svm_discrete_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/svm_discrete_hyperparameters.csv
+    versioned: true
+
+
 ## Place holder 
 
 placeholder_dataset:
