@@ -1085,12 +1085,26 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     precision = print_and_return_precision(y_validate, predictions)
     recall = print_and_return_recall(y_validate, predictions)
 
+    
+    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
+
+    print('Best Hyperparmeters For ANN')
+    print('Continous: ')
+    print(continuous_params_df)
+
+    print('Discrete')
+    print(discrete_params_df)
+
     return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
+        },
+        'continuous_params': continuous_params_df,
+        'discrete_params': discrete_params_df
     }
 
 
