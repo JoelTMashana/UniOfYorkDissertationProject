@@ -1032,6 +1032,10 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     
     X_train = X_train.drop(columns=exclude_column)
     X_validate = X_validate.drop(columns=exclude_column)
+    
+    scaler = StandardScaler()
+    X_train  = scaler.fit_transform(X_train)
+    X_validate  = scaler.transform(X_validate)
 
     np.random.seed(42)
     random.seed(42)
@@ -1057,7 +1061,7 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
                                        n_iter=number_of_iterations, cv=2, random_state=42)
     random_search.fit(X_train, y_train)
 
-    # Best model
+    # Best model For predictions and metrics
     best_model = random_search.best_estimator_.model
 
     
@@ -1087,12 +1091,7 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     }
 
 
-
-
-
-
 def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
-
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
