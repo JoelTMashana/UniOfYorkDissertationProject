@@ -22,6 +22,7 @@ from sklearn.svm import SVC
 import tensorflow  
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+from keras.wrappers.scikit_learn import KerasClassifier
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
@@ -29,6 +30,10 @@ from scipy.stats import expon, reciprocal
 from sklearn.feature_selection import RFE
 import random
 import os
+
+
+
+
 
 
 def filter_rows_based_on_conditions(df, conditions):
@@ -982,6 +987,108 @@ def train_ann_experimental(X_train, y_train, X_validate, y_validate, model_name,
         'confusion_matrix_fp': fp,
         'confusion_matrix_fn': fn,
     }
+
+
+def get_hyperparameter_ranges(random_search, top_percentage=0.2):
+    
+    results_df = pd.DataFrame(random_search.cv_results_)
+    top_results = results_df.sort_values('rank_test_score').head(int(len(results_df) * top_percentage))
+
+
+    print('The Structure of the top results for hyperparameters')
+    print(top_results)
+
+    continuous_params_df = pd.DataFrame({
+        'neurons': [
+            round(top_results['param_neurons'].quantile(0.25)), 
+            round(top_results['param_neurons'].quantile(0.75))
+        ]
+    })
+
+   # Discrete parameters - selecting the most frequent value
+    optimiser_value = top_results['optimizer'].value_counts().idxmax()
+    activation_value = top_results['activation'].value_counts().idxmax()
+
+    discrete_params_df = pd.DataFrame({
+        'max_depth': [optimiser_value],
+        'criterion': [activation_value]
+    })
+
+
+    return continuous_params_df, discrete_params_df
+
+
+def create_model( X_train, optimizer='adam', neurons=16, activation='relu'):
+    model = Sequential([
+        Dense(neurons, activation=activation, input_shape=(X_train.shape[1],)),
+        Dense(neurons, activation=activation),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+
+def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, exclude_column, number_of_iterations):
+    
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
+
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    # Need to remember to standard scale
+    # And ensure, use smote
+
+    # Define the hyperparameter space
+    param_dist = {
+        'optimizer': ['adam', 'sgd'],
+        'neurons': [10, 16, 30],
+        'activation': ['relu', 'tanh']
+    }
+
+    # Create the KerasClassifier
+    model = KerasClassifier(build_fn=create_model(X_train), epochs=10, batch_size=64, verbose=0)
+
+    # Random search
+    random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, 
+                                       n_iter=number_of_iterations, cv=2, random_state=42)
+    random_search.fit(X_train, y_train)
+
+    # Best model
+    best_model = random_search.best_estimator_.model
+
+    
+    # For binary cross entropy, may need to change labels in pre processing
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+    best_model.fit( X_train, y_train, epochs=10, batch_size=64)
+
+    y_pred_probs = best_model.predict(X_validate).ravel()
+    predictions = np.round(y_pred_probs)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf(best_model, X_validate, y_validate)
+
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall
+    }
+
+
+
+
 
 
 def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):

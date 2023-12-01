@@ -11,7 +11,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_logistic_regression_experimental_rfe, train_logistic_regression_experimental, split_train_test_validate_smote_applied,
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
-                                       train_decision_tree_with_random_search, train_svm_with_random_search
+                                       train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search
                                        )
 def create_pipeline(**kwargs):
     
@@ -658,6 +658,24 @@ def create_pipeline(**kwargs):
         name="find_optimal_hyperparameter_ranges_for_svm_node"
     )
 
+    find_optimal_hyperparameter_ranges_for_ann_node = node(
+        train_ann_with_random_search,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_validate": "X_validate_main",
+            "y_validate": "y_validate_main",
+            "model_name": "params:ann",
+            "number_of_iterations": "params:number_of_iterations_randomised_search_decision_tree"
+        },
+        outputs={
+            "metrics": "metrics",
+            "continuous_params": "ann_continuous_hyperparameters",
+            "discrete_params": "ann_discrete_hyperparameters"
+        },
+        name="find_optimal_hyperparameter_ranges_for_ann_node"
+    )
+
 
    
     return Pipeline(
@@ -674,10 +692,11 @@ def create_pipeline(**kwargs):
            mean_imputation_node,
            train_test_validate_split_node,
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
-           find_optimal_hyperparameter_ranges_for_svm_node
+        #    find_optimal_hyperparameter_ranges_for_svm_node,
+           find_optimal_hyperparameter_ranges_for_ann_node
            
 
-    
+     
 
 
            ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
