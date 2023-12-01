@@ -989,7 +989,7 @@ def train_ann_experimental(X_train, y_train, X_validate, y_validate, model_name,
     }
 
 
-def get_hyperparameter_ranges(random_search, top_percentage=0.2):
+def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
     
     results_df = pd.DataFrame(random_search.cv_results_)
     top_results = results_df.sort_values('rank_test_score').head(int(len(results_df) * top_percentage))
@@ -1037,6 +1037,9 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     X_train  = scaler.fit_transform(X_train)
     X_validate  = scaler.transform(X_validate)
 
+    smote = SMOTE(random_state=42)
+    X_train_smote_and_scaled, y_train_smote = smote.fit_resample(X_train, y_train)
+
     np.random.seed(42)
     random.seed(42)
     tensorflow.random.set_seed(42)
@@ -1054,22 +1057,22 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     }
 
     # Create the KerasClassifier
-    model = KerasClassifier(build_fn=create_model(X_train), epochs=10, batch_size=64, verbose=0)
+    model = KerasClassifier(build_fn=create_model(X_train_smote_and_scaled), epochs=10, batch_size=64, verbose=0)
 
     # Random search
     random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, 
                                        n_iter=number_of_iterations, cv=2, random_state=42)
-    random_search.fit(X_train, y_train)
+    random_search.fit(X_train_smote_and_scaled, y_train_smote)
 
     # Best model For predictions and metrics
     best_model = random_search.best_estimator_.model
 
     
     # For binary cross entropy, may need to change labels in pre processing
-    y_train = y_train.replace({1: 0, 2: 1})
+    y_train_smote = y_train_smote.replace({1: 0, 2: 1})
     y_validate = y_validate.replace({1: 0, 2: 1}) 
 
-    best_model.fit( X_train, y_train, epochs=10, batch_size=64)
+    best_model.fit( X_train_smote_and_scaled, y_train_smote, epochs=10, batch_size=64)
 
     y_pred_probs = best_model.predict(X_validate).ravel()
     predictions = np.round(y_pred_probs)
