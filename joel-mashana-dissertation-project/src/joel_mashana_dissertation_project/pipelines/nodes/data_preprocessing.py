@@ -22,7 +22,7 @@ from sklearn.svm import SVC
 import tensorflow  
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasClassifier
+from scikeras.wrappers import KerasClassifier
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
@@ -1018,14 +1018,15 @@ def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
     return continuous_params_df, discrete_params_df
 
 
-def create_model( X_train, optimizer='adam', neurons=16, activation='relu'):
+def create_model(input_shape, optimizer='adam', neurons=16, activation='relu'):
     model = Sequential([
-        Dense(neurons, activation=activation, input_shape=(X_train.shape[1],)),
+        Dense(neurons, activation=activation, input_shape=(input_shape,)),
         Dense(neurons, activation=activation),
         Dense(1, activation='sigmoid')  # Binary
     ])
     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
     return model
+
 
 
 def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, exclude_column, number_of_iterations):
@@ -1049,6 +1050,8 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     # Need to remember to standard scale
     # And ensure, use smote
 
+    input_shape = X_train.shape[1] - len(exclude_column)
+
     # Define the hyperparameter space
     param_dist = {
         'optimizer': ['adam', 'sgd'],
@@ -1057,7 +1060,7 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     }
 
     # Create the KerasClassifier
-    model = KerasClassifier(build_fn=create_model(X_train_smote_and_scaled), epochs=10, batch_size=64, verbose=0)
+    model = KerasClassifier(build_fn=lambda: create_model(input_shape), epochs=10, batch_size=64, verbose=0)
 
     # Random search
     random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, 
