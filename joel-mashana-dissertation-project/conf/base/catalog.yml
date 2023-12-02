@@ -510,16 +510,10 @@ svm_discrete_hyperparameters:
     filepath: data/07_model_output/svm_discrete_hyperparameters.csv
     versioned: true
 
-ann_continuous_hyperparameters:
+ann_best_hyperparameters:
     type: pandas.CSVDataSet
-    filepath: data/07_model_output/ann_continuous_hyperparameters.csv
+    filepath: data/07_model_output/ann_best_hyperparameters.csv
     versioned: true
-
-ann_discrete_hyperparameters:
-    type: pandas.CSVDataSet
-    filepath: data/07_model_output/ann_discrete_hyperparameters.csv
-    versioned: true
-
 
 ## Place holder 
 

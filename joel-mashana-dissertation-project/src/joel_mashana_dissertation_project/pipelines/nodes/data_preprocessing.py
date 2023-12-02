@@ -23,6 +23,7 @@ import tensorflow
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from scikeras.wrappers import KerasClassifier
+import kerastuner as kt
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTE
@@ -1018,25 +1019,121 @@ def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
     return continuous_params_df, discrete_params_df
 
 
-def create_model(input_shape, optimizer='adam', neurons=16, activation='relu'):
-    model = Sequential([
-        Dense(neurons, activation=activation, input_shape=(input_shape,)),
-        Dense(neurons, activation=activation),
-        Dense(1, activation='sigmoid')  # Binary
-    ])
-    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
-    return model
+# def create_model(optimizer='adam', neurons=10, activation='relu', input_shape=None):
+#     model = Sequential([
+#         Dense(neurons, activation=activation, input_shape=(input_shape,)),
+#         Dense(neurons, activation=activation),
+#         Dense(1, activation='sigmoid')  # Binary
+#     ])
+#     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+#     return model
 
 
 
-def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, exclude_column, number_of_iterations):
+# def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
-    X_train = X_train.drop(columns=exclude_column)
-    X_validate = X_validate.drop(columns=exclude_column)
+#     scaler = StandardScaler()
+#     X_train  = scaler.fit_transform(X_train)
+#     X_validate  = scaler.transform(X_validate)
+
+#     smote = SMOTE(random_state=42)
+#     X_train_smote_and_scaled, y_train_smote = smote.fit_resample(X_train, y_train)
+
+#     np.random.seed(42)
+#     random.seed(42)
+#     tensorflow.random.set_seed(42)
+#     os.environ['PYTHONHASHSEED'] = str(42)
+#     os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+#     # Need to remember to standard scale
+#     # And ensure, use smote
+
+#     input_shape = X_train.shape[1]
+
+#     # Define the hyperparameter space
+#     param_dist = {
+#         'optimizer': ['adam', 'sgd'],
+#         'neurons': [10, 16, 30],
+#         'activation': ['relu', 'tanh']
+#     }
+
+#     # Create the KerasClassifier
+#     model = KerasClassifier(build_fn=lambda: create_model(input_shape=input_shape), epochs=10, batch_size=64, verbose=0)
+
+#     # Random search
+#     random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, 
+#                                        n_iter=number_of_iterations, cv=2, random_state=42)
+#     random_search.fit(X_train_smote_and_scaled, y_train_smote)
+
+#     # Best model For predictions and metrics
+#     best_model = random_search.best_estimator_.model
+
+    
+#     # For binary cross entropy, may need to change labels in pre processing
+#     y_train_smote = y_train_smote.replace({1: 0, 2: 1})
+#     y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+#     best_model.fit( X_train_smote_and_scaled, y_train_smote, epochs=10, batch_size=64)
+
+#     y_pred_probs = best_model.predict(X_validate).ravel()
+#     predictions = np.round(y_pred_probs)
+
+#     print_model_name(model_name)
+#     accuracy = calculate_accuracy(y_validate, predictions)
+#     auc = print_auc_tf(best_model, X_validate, y_validate)
+
+#     f1 = print_and_return_f1_score(y_validate, predictions)
+#     precision = print_and_return_precision(y_validate, predictions)
+#     recall = print_and_return_recall(y_validate, predictions)
+
+    
+#     continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
+
+#     print('Best Hyperparmeters For ANN')
+#     print('Continous: ')
+#     print(continuous_params_df)
+
+#     print('Discrete')
+#     print(discrete_params_df)
+
+#     return {
+#         'metrics': {
+#             'accuracy': accuracy,
+#             'auc': auc,
+#             'f1_score': f1,
+#             'precision': precision,
+#             'recall': recall
+#         },
+#         'continuous_params': continuous_params_df,
+#         'discrete_params': discrete_params_df
+#     }
+
+
+
+
+
+def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+   
+    # input_shape = X_train.shape[1]
+    def create_model(hp): # Refactor if you get time
+        model = Sequential()
+        model.add(Dense(units=hp.Int('units', min_value=10, max_value=30, step=10),
+                        activation=hp.Choice('activation', values=['relu', 'tanh']),
+                        input_shape=(X_train.shape[1],)))
+        model.add(Dense(units=hp.Int('units', min_value=10, max_value=30, step=10),
+                        activation=hp.Choice('activation', values=['relu', 'tanh'])))
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer=hp.Choice('optimizer', values=['adam', 'sgd']),
+                    loss='binary_crossentropy',
+                    metrics=['accuracy'])
+        return model
+
     
     scaler = StandardScaler()
     X_train  = scaler.fit_transform(X_train)
     X_validate  = scaler.transform(X_validate)
+
+    
 
     smote = SMOTE(random_state=42)
     X_train_smote_and_scaled, y_train_smote = smote.fit_resample(X_train, y_train)
@@ -1047,35 +1144,29 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     os.environ['PYTHONHASHSEED'] = str(42)
     os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
-    # Need to remember to standard scale
-    # And ensure, use smote
+ 
 
-    input_shape = X_train.shape[1] - len(exclude_column)
-
-    # Define the hyperparameter space
-    param_dist = {
-        'optimizer': ['adam', 'sgd'],
-        'neurons': [10, 16, 30],
-        'activation': ['relu', 'tanh']
-    }
-
-    # Create the KerasClassifier
-    model = KerasClassifier(build_fn=lambda: create_model(input_shape), epochs=10, batch_size=64, verbose=0)
-
-    # Random search
-    random_search = RandomizedSearchCV(estimator=model, param_distributions=param_dist, 
-                                       n_iter=number_of_iterations, cv=2, random_state=42)
-    random_search.fit(X_train_smote_and_scaled, y_train_smote)
-
-    # Best model For predictions and metrics
-    best_model = random_search.best_estimator_.model
-
+    tuner = kt.RandomSearch(
+        create_model,
+        objective='val_accuracy',
+        max_trials=number_of_iterations,
+        executions_per_trial=1,
+        directory='my_dir',
+        project_name='ann_tuning'
+    )
     
-    # For binary cross entropy, may need to change labels in pre processing
     y_train_smote = y_train_smote.replace({1: 0, 2: 1})
     y_validate = y_validate.replace({1: 0, 2: 1}) 
 
-    best_model.fit( X_train_smote_and_scaled, y_train_smote, epochs=10, batch_size=64)
+    tuner.search(X_train_smote_and_scaled, y_train_smote, epochs=10, validation_data=(X_validate, y_validate))
+
+    # Get the best hyperparameters
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    print(f"Best hyperparameters: {best_hps.values}")
+
+    # Build the model with the best hyperparameters and train it on the data
+    best_model = tuner.hypermodel.build(best_hps)
+    best_model.fit(X_train_smote_and_scaled, y_train_smote, epochs=10, validation_data=(X_validate, y_validate))
 
     y_pred_probs = best_model.predict(X_validate).ravel()
     predictions = np.round(y_pred_probs)
@@ -1088,15 +1179,7 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     precision = print_and_return_precision(y_validate, predictions)
     recall = print_and_return_recall(y_validate, predictions)
 
-    
-    continuous_params_df, discrete_params_df = get_hyperparameter_ranges(random_search)
-
-    print('Best Hyperparmeters For ANN')
-    print('Continous: ')
-    print(continuous_params_df)
-
-    print('Discrete')
-    print(discrete_params_df)
+    best_hyperparameters_df = pd.DataFrame([best_hps.values])
 
     return {
         'metrics': {
@@ -1106,9 +1189,9 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
             'precision': precision,
             'recall': recall
         },
-        'continuous_params': continuous_params_df,
-        'discrete_params': discrete_params_df
+        'best_hyperparameters': best_hyperparameters_df
     }
+
 
 
 def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):

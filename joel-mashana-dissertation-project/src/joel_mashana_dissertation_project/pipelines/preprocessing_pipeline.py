@@ -670,8 +670,7 @@ def create_pipeline(**kwargs):
         },
         outputs={
             "metrics": "metrics",
-            "continuous_params": "ann_continuous_hyperparameters",
-            "discrete_params": "ann_discrete_hyperparameters"
+            "best_hyperparameters": "ann_best_hyperparameters"
         },
         name="find_optimal_hyperparameter_ranges_for_ann_node"
     )
