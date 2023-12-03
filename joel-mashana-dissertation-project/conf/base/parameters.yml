@@ -56,7 +56,7 @@ number_of_iterations_randomised_search: 100
 number_of_iterations_randomised_search_decision_tree: 100
 number_of_iterations_randomised_search_svm: 10
 
-number_of_iterations_randomised_search_ann: 30
+number_of_iterations_randomised_search_ann: 96
 
 #rfe
 number_of_features_to_select: 99 # 99

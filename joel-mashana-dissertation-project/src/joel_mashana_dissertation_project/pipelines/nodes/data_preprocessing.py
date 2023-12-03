@@ -23,6 +23,7 @@ import tensorflow
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from scikeras.wrappers import KerasClassifier
+from tensorflow.keras.callbacks import EarlyStopping
 import kerastuner as kt
 import statsmodels.api as sm
 from sklearn.model_selection import RandomizedSearchCV
@@ -1110,22 +1111,55 @@ def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
 
 
 
+def get_best_hyperparameters_ann(top_trials):
+    units_list = []
+    activation_list = []
+    optimiser_list = []
+    batch_size_list = []
+
+    # Extract hyperparameters from top trials
+    for trial in top_trials:
+        hps = trial.hyperparameters
+        units_list.append(hps.get('units'))
+        activation_list.append(hps.get('activation'))
+        optimiser_list.append(hps.get('optimizer'))
+        batch_size_list.append(hps.get('batch_size'))
+        print(trial.hyperparameters.values)
+
+    # Calculate ranges or most common values
+    units_range = [np.percentile(units_list, 25), np.percentile(units_list, 75)]
+    most_common_activation = max(set(activation_list), key=activation_list.count)
+    most_common_optimiser = max(set(optimiser_list), key=optimiser_list.count)
+    batch_size_range = [np.percentile(batch_size_list, 25), np.percentile(batch_size_list, 75)]
+
+    hyperparameter_ranges_df = pd.DataFrame({
+        'units_range': [units_range],
+        'activation': [most_common_activation],
+        'optimizer': [most_common_optimiser],
+        'batch_size_range': [batch_size_range]
+    })
+
+    return hyperparameter_ranges_df
+
+
 
 
 def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
    
     # input_shape = X_train.shape[1]
-    def create_model(hp): # Refactor if you get time
+    def create_model(hp):
         model = Sequential()
-        model.add(Dense(units=hp.Int('units', min_value=10, max_value=30, step=10),
+        model.add(Dense(units=hp.Int('units', min_value=50, max_value=150, step=10),
                         activation=hp.Choice('activation', values=['relu', 'tanh']),
                         input_shape=(X_train.shape[1],)))
-        model.add(Dense(units=hp.Int('units', min_value=10, max_value=30, step=10),
+        model.add(Dense(units=hp.Int('units', min_value=15, max_value=70, step=10),
                         activation=hp.Choice('activation', values=['relu', 'tanh'])))
         model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer=hp.Choice('optimizer', values=['adam', 'sgd']),
-                    loss='binary_crossentropy',
-                    metrics=['accuracy'])
+                      loss='binary_crossentropy',
+                      metrics=['accuracy'])
+        model.batch_size = hp.Int('batch_size', min_value=16, max_value=128, step=16)
+
         return model
 
     
@@ -1158,7 +1192,16 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     y_train_smote = y_train_smote.replace({1: 0, 2: 1})
     y_validate = y_validate.replace({1: 0, 2: 1}) 
 
-    tuner.search(X_train_smote_and_scaled, y_train_smote, epochs=10, validation_data=(X_validate, y_validate))
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    tuner.search(X_train_smote_and_scaled, y_train_smote, 
+                 epochs=100,  # large number of epochs and let early stopping halt the training
+                 validation_data=(X_validate, y_validate),
+                 callbacks=[early_stopping])
+
+    top_percentage=0.2
+    top_trials = tuner.oracle.get_best_trials(int(number_of_iterations * top_percentage))
+
+    hyperparameter_ranges_df = get_best_hyperparameters_ann(top_trials)
 
     # Get the best hyperparameters
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -1166,7 +1209,14 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
 
     # Build the model with the best hyperparameters and train it on the data
     best_model = tuner.hypermodel.build(best_hps)
-    best_model.fit(X_train_smote_and_scaled, y_train_smote, epochs=10, validation_data=(X_validate, y_validate))
+    best_batch_size = best_hps.get('batch_size')
+
+    best_model.fit(X_train_smote_and_scaled, y_train_smote, 
+                   batch_size=best_batch_size, 
+                   epochs=100,  
+                   validation_data=(X_validate, y_validate),
+                   callbacks=[early_stopping])
+
 
     y_pred_probs = best_model.predict(X_validate).ravel()
     predictions = np.round(y_pred_probs)
@@ -1189,7 +1239,7 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
             'precision': precision,
             'recall': recall
         },
-        'best_hyperparameters': best_hyperparameters_df
+        'best_hyperparameters': hyperparameter_ranges_df 
     }
 
 
