@@ -11,7 +11,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_logistic_regression_experimental_rfe, train_logistic_regression_experimental, split_train_test_validate_smote_applied,
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
-                                       train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search
+                                       train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search,
+                                       train_decision_tree_with_grid_search
                                        )
 def create_pipeline(**kwargs):
     
@@ -666,11 +667,30 @@ def create_pipeline(**kwargs):
             "X_validate": "X_validate_main",
             "y_validate": "y_validate_main",
             "model_name": "params:ann",
-            "number_of_iterations": "params:number_of_iterations_randomised_search_decision_tree"
+            "number_of_iterations": "params:number_of_iterations_randomised_search_ann"
+
         },
         outputs={
             "metrics": "metrics",
             "best_hyperparameters": "ann_best_hyperparameters"
+        },
+        name="find_optimal_hyperparameter_ranges_for_ann_node"
+    )
+
+    find_best_hyperparameters_for_decision_tree_node = node (
+        train_decision_tree_with_grid_search,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_validate": "X_validate_main",
+            "y_validate": "y_validate_main",
+            "model_name": "params:decision_tree",
+            "number_of_iterations": "params:number_of_iterations_randomised_search_ann"
+
+        },
+        outputs={
+            "metrics": "metrics",
+            "best_hyperparameters": "decision_tree_best_hyperparameters"
         },
         name="find_optimal_hyperparameter_ranges_for_ann_node"
     )
@@ -692,7 +712,9 @@ def create_pipeline(**kwargs):
            train_test_validate_split_node,
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_svm_node,
-           find_optimal_hyperparameter_ranges_for_ann_node
+        #    find_optimal_hyperparameter_ranges_for_ann_node,
+           find_best_hyperparameters_for_decision_tree_node
+        
            
 
      

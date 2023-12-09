@@ -31,6 +31,11 @@ from imblearn.over_sampling import SMOTE
 from scipy.stats import expon, reciprocal
 from sklearn.feature_selection import RFE
 import random
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+from imblearn.pipeline import make_pipeline as make_pipeline_imb
+
+
 import os
 
 
@@ -1112,32 +1117,44 @@ def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
 
 
 def get_best_hyperparameters_ann(top_trials):
-    units_list = []
     activation_list = []
     optimiser_list = []
-    batch_size_list = []
+    num_layers_list = []
+    all_units_lists = {}
 
     # Extract hyperparameters from top trials
     for trial in top_trials:
         hps = trial.hyperparameters
-        units_list.append(hps.get('units'))
-        activation_list.append(hps.get('activation'))
+        num_layers = hps.get('num_layers')
+        num_layers_list.append(num_layers)
+
+        for i in range(num_layers):
+            units_key = 'units_' + str(i)
+            activation_key = 'activation_' + str(i)
+
+            if units_key not in all_units_lists:
+                all_units_lists[units_key] = []
+            all_units_lists[units_key].append(hps.get(units_key))
+
+            activation_list.append(hps.get(activation_key))
+        
         optimiser_list.append(hps.get('optimizer'))
-        batch_size_list.append(hps.get('batch_size'))
         print(trial.hyperparameters.values)
 
     # Calculate ranges or most common values
-    units_range = [np.percentile(units_list, 25), np.percentile(units_list, 75)]
+    units_ranges = {key: [np.percentile(values, 25), np.percentile(values, 75)] for key, values in all_units_lists.items()}
     most_common_activation = max(set(activation_list), key=activation_list.count)
     most_common_optimiser = max(set(optimiser_list), key=optimiser_list.count)
-    batch_size_range = [np.percentile(batch_size_list, 25), np.percentile(batch_size_list, 75)]
+    num_layers_range = [min(num_layers_list), max(num_layers_list)]  # range of number of layers
 
     hyperparameter_ranges_df = pd.DataFrame({
-        'units_range': [units_range],
-        'activation': [most_common_activation],
+        'num_layers_range': [num_layers_range],
         'optimizer': [most_common_optimiser],
-        'batch_size_range': [batch_size_range]
+        'activation': [most_common_activation]
     })
+
+    for key, value in units_ranges.items():
+        hyperparameter_ranges_df[key] = [value]
 
     return hyperparameter_ranges_df
 
@@ -1149,18 +1166,32 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
     # input_shape = X_train.shape[1]
     def create_model(hp):
         model = Sequential()
-        model.add(Dense(units=hp.Int('units', min_value=50, max_value=150, step=10),
-                        activation=hp.Choice('activation', values=['relu', 'tanh']),
-                        input_shape=(X_train.shape[1],)))
-        model.add(Dense(units=hp.Int('units', min_value=15, max_value=70, step=10),
-                        activation=hp.Choice('activation', values=['relu', 'tanh'])))
+        
+        num_layers = hp.Int('num_layers', 1, 20)
+        print(f"Creating model with {num_layers} layers")  
+
+        for i in range(num_layers):
+            units = hp.Int('units_' + str(i), min_value=15, max_value=150, step=10)
+            activation = hp.Choice('activation_' + str(i), values=['relu', 'tanh'])
+            if i == 0:
+                print(f"Adding layer {i+1} with {units} units, {activation} activation, and input shape {X_train.shape[1]}")  # Debugging statement
+                model.add(Dense(units=units, activation=activation, input_shape=(X_train.shape[1],)))
+            else:
+                print(f"Adding layer {i+1} with {units} units and {activation} activation")  
+                model.add(Dense(units=units, activation=activation))
+
         model.add(Dense(1, activation='sigmoid'))
-        model.compile(optimizer=hp.Choice('optimizer', values=['adam', 'sgd']),
-                      loss='binary_crossentropy',
-                      metrics=['accuracy'])
-        model.batch_size = hp.Int('batch_size', min_value=16, max_value=128, step=16)
+        print("Adding output layer with sigmoid activation")  # Debugging statement
+
+        optimizer = hp.Choice('optimizer', values=['adam', 'sgd'])
+        print(f"Compiling model with {optimizer} optimizer")  # Debugging statement
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+
+        # model.batch_size = hp.Int('batch_size', min_value=16, max_value=128, step=16)
 
         return model
+
+
 
     
     scaler = StandardScaler()
@@ -1188,18 +1219,53 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
         directory='my_dir',
         project_name='ann_tuning'
     )
+
+    tunerNumLayersAdded = kt.RandomSearch(
+        create_model,
+        objective='val_accuracy',
+        max_trials=number_of_iterations,
+        executions_per_trial=1,
+        directory='new_dir', 
+        project_name='ann_tuning_num_layers_added' 
+    )
+
+    tunerNumLayersAddedTwo = kt.RandomSearch(
+        create_model,
+        objective='val_accuracy',
+        max_trials=number_of_iterations,
+        executions_per_trial=1,
+        directory='new_dir_two', 
+        project_name='ann_tuning_num_layers_added_two' 
+    )
+
+    tunerNumLayersAddedThree = kt.RandomSearch(
+        create_model,
+        objective='val_accuracy',
+        max_trials=number_of_iterations,
+        executions_per_trial=1,
+        directory='new_dir_three', 
+        project_name='ann_tuning_num_layers_added_three' 
+    )
+    tunerNumLayersAddedFour = kt.RandomSearch(
+        create_model,
+        objective='val_accuracy',
+        max_trials=number_of_iterations,
+        executions_per_trial=1,
+        directory='new_dir_four', 
+        project_name='ann_tuning_num_layers_added_four' 
+    )
     
     y_train_smote = y_train_smote.replace({1: 0, 2: 1})
     y_validate = y_validate.replace({1: 0, 2: 1}) 
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-    tuner.search(X_train_smote_and_scaled, y_train_smote, 
+    tunerNumLayersAddedFour.search(X_train_smote_and_scaled, y_train_smote, 
                  epochs=100,  # large number of epochs and let early stopping halt the training
                  validation_data=(X_validate, y_validate),
                  callbacks=[early_stopping])
 
     top_percentage=0.2
-    top_trials = tuner.oracle.get_best_trials(int(number_of_iterations * top_percentage))
+    top_trials = tunerNumLayersAddedFour.oracle.get_best_trials(int(number_of_iterations * top_percentage))
 
     hyperparameter_ranges_df = get_best_hyperparameters_ann(top_trials)
 
@@ -1209,10 +1275,10 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
 
     # Build the model with the best hyperparameters and train it on the data
     best_model = tuner.hypermodel.build(best_hps)
-    best_batch_size = best_hps.get('batch_size')
+    # best_batch_size = best_hps.get('batch_size')
 
     best_model.fit(X_train_smote_and_scaled, y_train_smote, 
-                   batch_size=best_batch_size, 
+                #    batch_size=best_batch_size, 
                    epochs=100,  
                    validation_data=(X_validate, y_validate),
                    callbacks=[early_stopping])
@@ -1490,6 +1556,82 @@ def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_v
     }
     
     return metrics, selected_features
+
+
+
+
+### Final Mdoels #######################################################
+
+
+
+def get_best_hyperparameters_decision_tree(grid_search):
+    best_params = grid_search.best_params_
+
+    print(best_params)
+    best_hyperparameters_df = pd.DataFrame(best_params, index=[0])
+
+    return best_hyperparameters_df
+
+def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):    
+
+    param_grid = {
+        "decisiontreeclassifier__max_depth": [20],
+        "decisiontreeclassifier__min_samples_split": range(10, 38),
+        "decisiontreeclassifier__min_samples_leaf": range(33, 43),
+        "decisiontreeclassifier__criterion": ["entropy"]
+    }
+
+    pipeline = make_pipeline_imb(StandardScaler(), SMOTE(random_state=42), 
+                                 DecisionTreeClassifier(random_state=42))
+    
+    grid_search = GridSearchCV(pipeline, param_grid=param_grid, cv=10, scoring='accuracy', verbose=1)
+
+    grid_search.fit(X_train, y_train)
+
+    best_model = grid_search.best_estimator_
+    predictions = best_model.predict(X_validate)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(best_model, X_validate, y_validate)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    
+
+    # Get hyperparameter ranges
+    best_params_df = get_best_hyperparameters_decision_tree(grid_search)
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+
+    return {
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall,
+            'confusion_matrix_tp': tp,
+            'confusion_matrix_tn': tn,
+            'confusion_matrix_fp': fp,
+            'confusion_matrix_fn': fn,
+        },
+        'best_hyperparameters': best_params_df
+    }
+
+
+
+
+
+
+
+
 
 ### Evaluation ##########################################################
 

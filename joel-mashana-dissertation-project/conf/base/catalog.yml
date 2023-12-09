@@ -515,6 +515,16 @@ ann_best_hyperparameters:
     filepath: data/07_model_output/ann_best_hyperparameters.csv
     versioned: true
 
+
+### Best hyperparameters
+
+decision_tree_best_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/decision_tree_best_hyperparameters.csv
+    versioned: true
+
+
+
 ## Place holder 
 
 placeholder_dataset:
