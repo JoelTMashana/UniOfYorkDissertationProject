@@ -1610,6 +1610,12 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
     tn, fp, fn, tp = confusion_matrix_values.ravel()
 
 
+    # Store actual max depth 
+    best_model = grid_search.best_estimator_.named_steps['decisiontreeclassifier']
+    actual_max_depth = best_model.tree_.max_depth
+
+    print('Decision Tree depth:', actual_max_depth)
+    
     return {
         'metrics': {
             'accuracy': accuracy,
@@ -1621,6 +1627,7 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
             'confusion_matrix_tn': tn,
             'confusion_matrix_fp': fp,
             'confusion_matrix_fn': fn,
+            'decision_tree_actual_max_depth': actual_max_depth
         },
         'best_hyperparameters': best_params_df
     }

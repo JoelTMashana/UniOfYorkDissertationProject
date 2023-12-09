@@ -685,14 +685,13 @@ def create_pipeline(**kwargs):
             "X_validate": "X_validate_main",
             "y_validate": "y_validate_main",
             "model_name": "params:decision_tree",
-            "number_of_iterations": "params:number_of_iterations_randomised_search_ann"
 
         },
         outputs={
             "metrics": "metrics",
-            "best_hyperparameters": "decision_tree_best_hyperparameters"
+            "best_hyperparameters": "decision_tree_best_hyperparameters",
         },
-        name="find_optimal_hyperparameter_ranges_for_ann_node"
+        name="find_best_hyperparameters_for_decision_tree_node"
     )
 
 
