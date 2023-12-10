@@ -1741,7 +1741,7 @@ f1_scorer = make_scorer(print_and_return_f1_score)
 precision_scorer = make_scorer(print_and_return_precision)
 recall_scorer = make_scorer(print_and_return_recall)
 
-def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth):
+def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth): # Main function
     results = []
 
     # Define the cross-validation 10-fold stratified
