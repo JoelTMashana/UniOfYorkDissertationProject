@@ -66,3 +66,11 @@ period: "Period"
 
 
 split_num: 10
+
+
+
+#### Proxies 
+
+# - Decison Tree
+decision_tree_initial_max_depth: 16
+decision_tree_min_depth: 3

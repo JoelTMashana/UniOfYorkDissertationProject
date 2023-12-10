@@ -12,7 +12,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
                                        train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search,
-                                       train_decision_tree_with_grid_search
+                                       train_decision_tree_with_grid_search, evaluate_decision_tree_depths
                                        )
 def create_pipeline(**kwargs):
     
@@ -685,7 +685,6 @@ def create_pipeline(**kwargs):
             "X_validate": "X_validate_main",
             "y_validate": "y_validate_main",
             "model_name": "params:decision_tree",
-
         },
         outputs={
             "metrics": "metrics",
@@ -693,6 +692,19 @@ def create_pipeline(**kwargs):
             "best_model": 'decision_tree_model_grid_search_best_params'
         },
         name="find_best_hyperparameters_for_decision_tree_node"
+    )
+
+    analyse_effect_of_reducing_decision_tree_depth_node = node(
+        evaluate_decision_tree_depths,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "initial_max_depth": "params:decision_tree_initial_max_depth",
+            "min_depth": "params:decision_tree_min_depth"
+
+        },
+        outputs="decision_tree_depth_reduction_analysis",
+        name="analyse_effect_of_reducing_decision_tree_depth_node"
     )
 
    
@@ -712,7 +724,8 @@ def create_pipeline(**kwargs):
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_svm_node,
         #    find_optimal_hyperparameter_ranges_for_ann_node,
-           find_best_hyperparameters_for_decision_tree_node,
+        #    find_best_hyperparameters_for_decision_tree_node,
+           analyse_effect_of_reducing_decision_tree_depth_node
         
            
 

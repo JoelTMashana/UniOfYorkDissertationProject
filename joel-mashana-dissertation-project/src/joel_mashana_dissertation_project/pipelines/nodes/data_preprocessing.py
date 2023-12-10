@@ -55,6 +55,9 @@ from collections import defaultdict
 from kedro.pipeline import node
 
 
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.metrics import make_scorer
+from sklearn.model_selection import cross_validate
 
 
 
@@ -1730,3 +1733,53 @@ def smote_oversample_minority_class(X_train, y_train):
     return X_train_smote, y_train_smote
 
 
+
+
+accuracy_scorer = make_scorer(calculate_accuracy)
+auc_scorer = make_scorer(print_auc, needs_proba=True, needs_threshold=False)
+f1_scorer = make_scorer(print_and_return_f1_score)
+precision_scorer = make_scorer(print_and_return_precision)
+recall_scorer = make_scorer(print_and_return_recall)
+
+def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth):
+    results = []
+
+    # Define the cross-validation 10-fold stratified
+    cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+    
+    # Define the scoring functions
+    scoring = {
+        'accuracy': accuracy_scorer,
+        'auc': auc_scorer,
+        'f1': f1_scorer,
+        'precision': precision_scorer,
+        'recall': recall_scorer
+    }
+    for depth in range(initial_max_depth, min_depth - 1, -1):
+        pipeline = make_pipeline_imb(
+            StandardScaler(),
+            SMOTE(random_state=42),
+            DecisionTreeClassifier(
+                criterion='entropy',
+                max_depth=depth,
+                min_samples_split=10,
+                min_samples_leaf=42,
+                random_state=42
+            )
+        )
+
+        # Evaluate the model using cross-validation
+        cv_results = cross_validate(pipeline, X_train, y_train, cv=cv, scoring=scoring)
+
+        # Store the results
+        results.append({
+            'max_depth': depth,
+            'cv_accuracy': np.mean(cv_results['test_accuracy']),
+            'cv_auc': np.mean(cv_results['test_auc']),
+            'cv_f1': np.mean(cv_results['test_f1']),
+            'cv_precision': np.mean(cv_results['test_precision']),
+            'cv_recall': np.mean(cv_results['test_recall'])
+        })
+        results_df = pd.DataFrame(results)
+
+    return results_df

@@ -433,7 +433,10 @@ ann_model_parameters:
   filepath: data/07_model_output/ann_model_parameters.csv
 
 
-
+decision_tree_depth_reduction_analysis:
+  type: pandas.CSVDataSet
+  filepath: data/07_model_output/decision_tree_depth_reduction_analysis.csv
+  versioned: true 
 
 #### Recurvise Feature Elimation
 
@@ -510,10 +513,7 @@ svm_discrete_hyperparameters:
     filepath: data/07_model_output/svm_discrete_hyperparameters.csv
     versioned: true
 
-ann_best_hyperparameters:
-    type: pandas.CSVDataSet
-    filepath: data/07_model_output/ann_best_hyperparameters.csv
-    versioned: true
+
 
 
 ### Best hyperparameters
@@ -530,12 +530,18 @@ decision_tree_model_grid_search_best_params:
   filepath: data/06_models/decision_tree_model_grid_search_best_params.pkl
   versioned: true 
 
+
 ###SHAP
 
 decision_tree_best_hyperparameters_shap_values:
   type: pandas.ParquetDataSet
   filepath: data/07_model_output/decision_tree_best_hyperparameters_shap_values.parquet
   versioned: true
+
+ann_best_hyperparameters:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/ann_best_hyperparameters.csv
+    versioned: true
 
 
 ## Place holder 
