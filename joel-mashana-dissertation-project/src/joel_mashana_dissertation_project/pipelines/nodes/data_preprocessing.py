@@ -1575,23 +1575,6 @@ def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_v
 
 ### Interpretability ###################################################
 
-def apply_shap(model, model_name, X_train):
-    """
-    Applies SHAP to explain the output of a given model.
-    """
-
-    explainer = shap.Explainer(model, X_train)
-
-    # Compute SHAP values
-    shap_values = explainer(X_train)
-
-    print('Shap Values')
-    print(shap_values)
-
-    return {
-        'model_name': model_name,
-        'shap_values': shap_values,
-    }
 
 
 ### Final Mdoels #######################################################
@@ -1650,6 +1633,18 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
 
     print('Decision Tree depth:', actual_max_depth)
     
+
+
+    extracted_model = best_model.named_steps['decisiontreeclassifier']
+    explainer = shap.Explainer(extracted_model, X_train)
+
+    # Compute SHAP values
+    shap_values = explainer(X_train)
+
+    shap.summary_plot(shap_values, X_train, plot_type="bar")
+    shap.summary_plot(shap_values, X_train)
+
+
     return {
         'metrics': {
             'accuracy': accuracy,

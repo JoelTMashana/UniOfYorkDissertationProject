@@ -530,6 +530,12 @@ decision_tree_model_grid_search_best_params:
   filepath: data/06_models/decision_tree_model_grid_search_best_params.pkl
   versioned: true 
 
+###SHAP
+
+decision_tree_best_hyperparameters_shap_values:
+  type: pandas.ParquetDataSet
+  filepath: data/07_model_output/decision_tree_best_hyperparameters_shap_values.parquet
+  versioned: true
 
 
 ## Place holder 

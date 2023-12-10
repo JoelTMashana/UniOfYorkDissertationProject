@@ -12,6 +12,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
                                        train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search,
+                                       apply_shap,
                                        train_decision_tree_with_grid_search
                                        )
 def create_pipeline(**kwargs):
@@ -695,6 +696,18 @@ def create_pipeline(**kwargs):
         name="find_best_hyperparameters_for_decision_tree_node"
     )
 
+    apply_shap_to_decision_tree_best_hyperparameters_node = node (
+         apply_shap,
+        #  inputs={
+        #      "model": "decision_tree_model_grid_search_best_params",
+        #      "model_name:": "params:decision_tree",
+        #      "X_train": "X_train_main"
+        #  },
+         inputs=["decision_tree_model_grid_search_best_params", "params:decision_tree", "X_train_main"],
+         outputs="decision_tree_best_hyperparameters_shap_values",
+         name="apply_shap_to_decision_tree_best_hyperparameters_node"
+    )
+
 
    
     return Pipeline(
@@ -713,7 +726,8 @@ def create_pipeline(**kwargs):
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_svm_node,
         #    find_optimal_hyperparameter_ranges_for_ann_node,
-           find_best_hyperparameters_for_decision_tree_node
+           find_best_hyperparameters_for_decision_tree_node,
+        #    apply_shap_to_decision_tree_best_hyperparameters_node
         
            
 
