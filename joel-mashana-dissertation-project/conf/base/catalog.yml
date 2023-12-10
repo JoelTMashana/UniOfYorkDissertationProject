@@ -524,6 +524,13 @@ decision_tree_best_hyperparameters:
     versioned: true
 
 
+### Final Models ----------------
+decision_tree_model_grid_search_best_params:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/decision_tree_model_grid_search_best_params.pkl
+  versioned: true 
+
+
 
 ## Place holder 
 

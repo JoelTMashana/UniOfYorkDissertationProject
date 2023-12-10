@@ -1,43 +1,58 @@
-import pandas as pd
+# Standard libraries
+import os
+import random
+
+# Third-party libraries
+# Data Manipulation
 import numpy as np
-from collections import defaultdict
-from kedro.pipeline import node
-from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.preprocessing import RobustScaler
-from sklearn.cluster import KMeans
+import pandas as pd
+
+# Data Visualisation
 import matplotlib.pyplot as plt
 import seaborn as sns
-from yellowbrick.cluster import KElbowVisualizer
-from sklearn.preprocessing import StandardScaler
+
+# Machine Learning - General
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import RFE
+from sklearn.impute import SimpleImputer, KNNImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-import tensorflow  
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from scikeras.wrappers import KerasClassifier
-from tensorflow.keras.callbacks import EarlyStopping
-import kerastuner as kt
-import statsmodels.api as sm
-from sklearn.model_selection import RandomizedSearchCV
-from imblearn.over_sampling import SMOTE
-from scipy.stats import expon, reciprocal
-from sklearn.feature_selection import RFE
-import random
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, GridSearchCV
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import make_pipeline as make_pipeline_imb
 
+# Statistics and Model Evaluation
+import statsmodels.api as sm
+from scipy.stats import expon, reciprocal
 
-import os
+# Visualisation for Machine Learning
+from yellowbrick.cluster import KElbowVisualizer
 
+# Neural Networks and Deep Learning
+import tensorflow
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping
+from scikeras.wrappers import KerasClassifier
+
+# Hyperparameter Tuning
+import kerastuner as kt
+
+# Model Interpretability
+import shap
+
+# Local application/library specific imports
+from collections import defaultdict
+from kedro.pipeline import node
 
 
 
@@ -1558,13 +1573,32 @@ def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_v
     return metrics, selected_features
 
 
+### Interpretability ###################################################
+
+def apply_shap(model, model_name, X_train):
+    """
+    Applies SHAP to explain the output of a given model.
+    """
+
+    explainer = shap.Explainer(model, X_train)
+
+    # Compute SHAP values
+    shap_values = explainer(X_train)
+
+    print('Shap Values')
+    print(shap_values)
+
+    return {
+        'model_name': model_name,
+        'shap_values': shap_values,
+    }
 
 
 ### Final Mdoels #######################################################
 
 
 
-def get_best_hyperparameters_decision_tree(grid_search):
+def get_best_hyperparameters_decision_tree(grid_search): # Main Support
     best_params = grid_search.best_params_
 
     print(best_params)
@@ -1572,7 +1606,7 @@ def get_best_hyperparameters_decision_tree(grid_search):
 
     return best_hyperparameters_df
 
-def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):    
+def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validate, model_name): # Main Function   
 
     param_grid = {
         "decisiontreeclassifier__max_depth": [20],
@@ -1611,8 +1645,8 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
 
 
     # Store actual max depth 
-    best_model = grid_search.best_estimator_.named_steps['decisiontreeclassifier']
-    actual_max_depth = best_model.tree_.max_depth
+    actual_max_depth = grid_search.best_estimator_.named_steps['decisiontreeclassifier']
+    actual_max_depth = actual_max_depth.tree_.max_depth
 
     print('Decision Tree depth:', actual_max_depth)
     
@@ -1629,7 +1663,8 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
             'confusion_matrix_fn': fn,
             'decision_tree_actual_max_depth': actual_max_depth
         },
-        'best_hyperparameters': best_params_df
+        'best_hyperparameters': best_params_df,
+        'best_model': best_model
     }
 
 

@@ -690,6 +690,7 @@ def create_pipeline(**kwargs):
         outputs={
             "metrics": "metrics",
             "best_hyperparameters": "decision_tree_best_hyperparameters",
+            "best_model": 'decision_tree_model_grid_search_best_params'
         },
         name="find_best_hyperparameters_for_decision_tree_node"
     )
