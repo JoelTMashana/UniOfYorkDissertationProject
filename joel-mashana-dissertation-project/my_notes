@@ -79,3 +79,13 @@
 #     'units_17': [85],
 #     'units_18': [135]
 # }
+
+
+# test_param_grid = {
+#     'num_layers': [5, 6],
+#     'optimizer': ['sgd'],  
+#     'activation': ['tanh'], 
+#     'units_4': [100], 
+#     'units_5': [60], 
+
+# }
