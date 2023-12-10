@@ -1600,7 +1600,7 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
 
     pipeline = make_pipeline_imb(StandardScaler(), SMOTE(random_state=42), 
                                  DecisionTreeClassifier(random_state=42))
-    
+    # GridSearchCV uses statified crossvalidation by default.
     grid_search = GridSearchCV(pipeline, param_grid=param_grid, cv=10, scoring='accuracy', verbose=1)
 
     grid_search.fit(X_train, y_train)
@@ -1620,29 +1620,21 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
     # Get hyperparameter ranges
     best_params_df = get_best_hyperparameters_decision_tree(grid_search)
     confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
 
     tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-
     # Store actual max depth 
     actual_max_depth = grid_search.best_estimator_.named_steps['decisiontreeclassifier']
     actual_max_depth = actual_max_depth.tree_.max_depth
 
     print('Decision Tree depth:', actual_max_depth)
     
-
-
     extracted_model = best_model.named_steps['decisiontreeclassifier']
     explainer = shap.Explainer(extracted_model, X_train)
 
     # Compute SHAP values
     shap_values = explainer(X_train)
-
-    shap.summary_plot(shap_values, X_train, plot_type="bar")
-    shap.summary_plot(shap_values, X_train)
+    print(type(shap_values))
+    print(shap_values.shape)
 
 
     return {
@@ -1661,7 +1653,6 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
         'best_hyperparameters': best_params_df,
         'best_model': best_model
     }
-
 
 
 
