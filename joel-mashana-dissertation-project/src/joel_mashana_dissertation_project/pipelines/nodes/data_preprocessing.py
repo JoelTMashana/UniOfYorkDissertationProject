@@ -1740,6 +1740,7 @@ auc_scorer = make_scorer(print_auc, needs_proba=True, needs_threshold=False)
 f1_scorer = make_scorer(print_and_return_f1_score)
 precision_scorer = make_scorer(print_and_return_precision)
 recall_scorer = make_scorer(print_and_return_recall)
+confusion_scorer = make_scorer(print_and_return_confusion_matrix)
 
 def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth): # Main function
     results = []
