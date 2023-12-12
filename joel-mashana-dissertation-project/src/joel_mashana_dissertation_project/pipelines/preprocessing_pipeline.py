@@ -718,8 +718,8 @@ def create_pipeline(**kwargs):
         },
         outputs={
             "metrics": "metrics",
-            # "best_hyperparameters": "ann_best_hyperparameters_grid_search",
-            # "best_model": 'ann_model_grid_search_best_params'
+            "best_hyperparameters": "ann_best_hyperparameters_grid_search",
+            "best_model": 'ann_model_grid_search_best_params'
         },
         name="find_best_hyperparameters_for_ann_node"
     )

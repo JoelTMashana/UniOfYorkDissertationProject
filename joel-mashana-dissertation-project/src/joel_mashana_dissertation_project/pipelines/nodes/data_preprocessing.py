@@ -1192,17 +1192,17 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
             units = hp.Int('units_' + str(i), min_value=15, max_value=150, step=10)
             activation = hp.Choice('activation_' + str(i), values=['relu', 'tanh'])
             if i == 0:
-                print(f"Adding layer {i+1} with {units} units, {activation} activation, and input shape {X_train.shape[1]}")  # Debugging statement
+                print(f"Adding layer {i+1} with {units} units, {activation} activation, and input shape {X_train.shape[1]}") 
                 model.add(Dense(units=units, activation=activation, input_shape=(X_train.shape[1],)))
             else:
                 print(f"Adding layer {i+1} with {units} units and {activation} activation")  
                 model.add(Dense(units=units, activation=activation))
 
         model.add(Dense(1, activation='sigmoid'))
-        print("Adding output layer with sigmoid activation")  # Debugging statement
+        print("Adding output layer with sigmoid activation")  
 
         optimizer = hp.Choice('optimizer', values=['adam', 'sgd'])
-        print(f"Compiling model with {optimizer} optimizer")  # Debugging statement
+        print(f"Compiling model with {optimizer} optimizer")  
         model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
         # model.batch_size = hp.Int('batch_size', min_value=16, max_value=128, step=16)
@@ -1329,23 +1329,46 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
 def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):
     # Define the ANN model
     
-    
+    # np.random.seed(42)
+    # random.seed(42)
+    # tensorflow.random.set_seed(42)
+    # os.environ['PYTHONHASHSEED'] = str(42)
+    # os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
     param_grid = {
-        'num_layers': [5],
-        'optimizer': ['sgd'],  
-        'activation': ['tanh'], 
-        'units_4': [100], 
-        'units_5': [60], 
-    }
+    'num_layers': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    'optimizer': ['sgd'],
+    'activation': ['tanh'],
+    'units_4': [100, 110, 120, 137.5],
+    'units_5': [60, 80, 100, 115],
+    'units_6': [35, 50, 65, 80],
+    'units_7': [25, 50, 72.5],
+    'units_8': [67.5, 85, 105],
+    'units_9': [35, 60, 90, 125],
+    'units_10': [60, 80, 100, 125],
+    'units_11': [77.5, 85, 100, 102.5],
+    'units_12': [27.5, 40, 52.5],
+    'units_13': [40, 60, 75, 90],
+    'units_14': [30, 35, 40],
+    'units_15': [67.5, 70, 72.5],
+    'units_16': [65],
+    'units_17': [85],
+    'units_18': [135]
+}
     
-    def create_model(num_layers, optimizer='sgd', activation='tanh', units_4=100, units_5=60):
+    def create_model(num_layers, optimizer='sgd', activation='tanh', **kwargs):
         model = Sequential()
-        for i in range(num_layers):
-            units = units_4 if i == 0 else units_5
-            model.add(Dense(units=units, activation=activation, input_shape=(X_train.shape[1],)) if i == 0 else Dense(units=units, activation=activation))
+        for i in range(4, num_layers + 4):  
+            units = kwargs.get(f'units_{i}', 50)  
+            if i == 4:  
+                model.add(Dense(units=units, activation=activation, input_shape=(X_train.shape[1],)))
+            else:
+                model.add(Dense(units=units, activation=activation))
         model.add(Dense(1, activation='sigmoid'))
         model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    
         return model
+
     
     # Scaling and SMOTE
     scaler = StandardScaler()
@@ -1363,13 +1386,26 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
         num_layers=5,  
         optimizer='sgd',  
         activation='tanh',  
-        units_4=100,  
-        units_5=60  
+        units_4= [100, 110, 120, 137.5],
+        units_5= [60, 80, 100, 115],
+        units_6= [35, 50, 65, 80],
+        units_7= [25, 50, 72.5],
+        units_8= [67.5, 85, 105],
+        units_9= [35, 60, 90, 125],
+        units_10= [60, 80, 100, 125],
+        units_11= [77.5, 85, 100, 102.5],
+        units_12= [27.5, 40, 52.5],
+        units_13= [40, 60, 75, 90],
+        units_14= [30, 35, 40],
+        units_15= [67.5, 70, 72.5],
+        units_16= [65],
+        units_17= [85],
+        units_18= [135] 
     )
     y_train_smote = y_train_smote.replace({1: 0, 2: 1})
     y_validate = y_validate.replace({1: 0, 2: 1}) 
     # Grid Search
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='accuracy', verbose=1, error_score='raise')
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=10, scoring='accuracy', verbose=1, error_score='raise')
     grid_result = grid.fit(X_train_smote, y_train_smote)
     print('Grid Result')
     print(grid_result.cv_results_)
@@ -1395,15 +1431,17 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
     precision = print_and_return_precision(y_validate, predictions)
     recall = print_and_return_recall(y_validate, predictions)
 
+    best_hyperparameters_df = pd.DataFrame([grid_result.best_params_])
     return {
         'metrics': {
-            'test': 0,
-            # # 'auc': auc,
-            # 'f1_score': f1,
-            # 'precision': precision,
-            # 'recall': recall
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
         },
-        # 'best_hyperparameters': grid_result.best_params_
+        'best_hyperparameters': best_hyperparameters_df,
+        'best_model': best_model
     }
 
 
