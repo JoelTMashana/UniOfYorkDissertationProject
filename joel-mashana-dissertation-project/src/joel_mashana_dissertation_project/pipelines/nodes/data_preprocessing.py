@@ -1366,7 +1366,8 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
         units_4=100,  
         units_5=60  
     )
-
+    y_train_smote = y_train_smote.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
     # Grid Search
     grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='accuracy', verbose=1, error_score='raise')
     grid_result = grid.fit(X_train_smote, y_train_smote)
@@ -1390,9 +1391,9 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
     accuracy = calculate_accuracy(y_validate, predictions)
     # auc = roc_auc_score(y_validate, y_pred_probs)
     auc = print_auc_tf(best_model, X_validate, y_validate)
-    # f1 = print_and_return_f1_score(y_validate, predictions)
-    # precision = print_and_return_precision(y_validate, predictions)
-    # recall = print_and_return_recall(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
 
     return {
         'metrics': {
