@@ -1134,7 +1134,7 @@ def get_hyperparameter_ranges_ann(random_search, top_percentage=0.2):
 
 
 
-def get_best_hyperparameters_ann(top_trials):
+def get_best_hyperparameters_ann(top_trials): # 
     activation_list = []
     optimiser_list = []
     num_layers_list = []
@@ -1179,7 +1179,7 @@ def get_best_hyperparameters_ann(top_trials):
 
 
 
-def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
+def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations): # Main Function
    
     # input_shape = X_train.shape[1]
     def create_model(hp):
@@ -1324,6 +1324,85 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
             'recall': recall
         },
         'best_hyperparameters': hyperparameter_ranges_df 
+    }
+
+def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):
+    # Define the ANN model
+    
+    
+    param_grid = {
+        'num_layers': [5],
+        'optimizer': ['sgd'],  
+        'activation': ['tanh'], 
+        'units_4': [100], 
+        'units_5': [60], 
+    }
+    
+    def create_model(num_layers, optimizer='sgd', activation='tanh', units_4=100, units_5=60):
+        model = Sequential()
+        for i in range(num_layers):
+            units = units_4 if i == 0 else units_5
+            model.add(Dense(units=units, activation=activation, input_shape=(X_train.shape[1],)) if i == 0 else Dense(units=units, activation=activation))
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+        return model
+    
+    # Scaling and SMOTE
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+    
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train_scaled, y_train)
+
+    # KerasClassifier wrapper
+    model = KerasClassifier(
+        build_fn=create_model,
+        epochs=100,
+        verbose=1,
+        num_layers=5,  
+        optimizer='sgd',  
+        activation='tanh',  
+        units_4=100,  
+        units_5=60  
+    )
+
+    # Grid Search
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3, scoring='accuracy', verbose=1, error_score='raise')
+    grid_result = grid.fit(X_train_smote, y_train_smote)
+    print('Grid Result')
+    print(grid_result.cv_results_)
+    # Best model
+    # Check if best model is found
+    print('Best estimator direct access')
+    print(grid_result.best_estimator_.model_)
+
+    best_model = grid_result.best_estimator_.model_
+    print('Best model found.')
+    print(type(best_model))
+
+
+
+    # Evaluation
+    y_pred_probs = best_model.predict(X_validate_scaled).ravel()
+    # predictions = np.round(y_pred_probs)
+    # print(model_name)
+    # accuracy = calculate_accuracy(y_validate, predictions)
+    # # auc = roc_auc_score(y_validate, y_pred_probs)
+    # # auc = print_auc_tf(best_model, X_validate, y_validate)
+    # f1 = print_and_return_f1_score(y_validate, predictions)
+    # precision = print_and_return_precision(y_validate, predictions)
+    # recall = print_and_return_recall(y_validate, predictions)
+
+    return {
+        'metrics': {
+            'test': 0,
+            # # 'auc': auc,
+            # 'f1_score': f1,
+            # 'precision': precision,
+            # 'recall': recall
+        },
+        # 'best_hyperparameters': grid_result.best_params_
     }
 
 
@@ -1740,7 +1819,6 @@ auc_scorer = make_scorer(print_auc, needs_proba=True, needs_threshold=False)
 f1_scorer = make_scorer(print_and_return_f1_score)
 precision_scorer = make_scorer(print_and_return_precision)
 recall_scorer = make_scorer(print_and_return_recall)
-confusion_scorer = make_scorer(print_and_return_confusion_matrix)
 
 def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth): # Main function
     results = []

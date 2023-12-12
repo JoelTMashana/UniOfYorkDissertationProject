@@ -523,11 +523,21 @@ decision_tree_best_hyperparameters:
     filepath: data/07_model_output/decision_tree_best_hyperparameters.csv
     versioned: true
 
+ann_best_hyperparameters_grid_search:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/ann_best_hyperparameters_grid_search.csv
+    versioned: true
+
 
 ### Final Models ----------------
 decision_tree_model_grid_search_best_params:
   type: pickle.PickleDataSet
   filepath: data/06_models/decision_tree_model_grid_search_best_params.pkl
+  versioned: true 
+
+ann_model_grid_search_best_params:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/ann_model_grid_search_best_params.pkl
   versioned: true 
 
 
