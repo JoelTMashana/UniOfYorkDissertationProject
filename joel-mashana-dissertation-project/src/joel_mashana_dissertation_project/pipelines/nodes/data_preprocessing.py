@@ -1385,11 +1385,11 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
 
     # Evaluation
     y_pred_probs = best_model.predict(X_validate_scaled).ravel()
-    # predictions = np.round(y_pred_probs)
-    # print(model_name)
-    # accuracy = calculate_accuracy(y_validate, predictions)
-    # # auc = roc_auc_score(y_validate, y_pred_probs)
-    # # auc = print_auc_tf(best_model, X_validate, y_validate)
+    predictions = np.round(y_pred_probs)
+    print(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    # auc = roc_auc_score(y_validate, y_pred_probs)
+    auc = print_auc_tf(best_model, X_validate, y_validate)
     # f1 = print_and_return_f1_score(y_validate, predictions)
     # precision = print_and_return_precision(y_validate, predictions)
     # recall = print_and_return_recall(y_validate, predictions)
