@@ -12,7 +12,7 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
                                        train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search,
-                                       train_decision_tree_with_grid_search, evaluate_decision_tree_depths, train_ann_with_grid_search
+                                       train_decision_tree_with_grid_search, evaluate_decision_tree_depths, train_ann_with_grid_search, train_ann_with_fixed_hyperparameters
                                        )
 def create_pipeline(**kwargs):
     
@@ -724,27 +724,43 @@ def create_pipeline(**kwargs):
         name="find_best_hyperparameters_for_ann_node"
     )
 
+    ann_with_optimal_hyperparameters_node = node (
+        train_ann_with_grid_search,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_validate": "X_validate_main",
+            "y_validate": "y_validate_main",
+            "model_name": "params:ann",
+        },
+        outputs={
+            "metrics": "metrics",
+            "best_model": 'ann_model_grid_search_best_params'
+        },
+        name="ann_with_optimal_hyperparameters_node"
+    )
+
    
     return Pipeline(
         [ 
            ## Main pipeline
            filter_buyer_payment_practises_on_supply_chain_finance_node,
-           create_period_column_node,
-           extract_payment_periods_node,
-           remove_redundant_columns_node,
-           anonymise_data_node,
-           encode_column_payments_made_in_the_reporting_period,
-           align_columns_node,
-           determine_and_assign_risk_levels_buyer_data_node,
-           mean_imputation_node,
-           train_test_validate_split_node,
+        #    create_period_column_node,
+        #    extract_payment_periods_node,
+        #    remove_redundant_columns_node,
+        #    anonymise_data_node,
+        #    encode_column_payments_made_in_the_reporting_period,
+        #    align_columns_node,
+        #    determine_and_assign_risk_levels_buyer_data_node,
+        #    mean_imputation_node,
+        #    train_test_validate_split_node,
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_svm_node,
         #    find_optimal_hyperparameter_ranges_for_ann_node,
         #    find_best_hyperparameters_for_decision_tree_node,
-        #    analyse_effect_of_reducing_decision_tree_depth_node
-            find_best_hyperparameters_for_ann_node
-           
+        #    analyse_effect_of_reducing_decision_tree_depth_node,
+            # find_best_hyperparameters_for_ann_node
+        #    ann_with_optimal_hyperparameters_node
 
      
 

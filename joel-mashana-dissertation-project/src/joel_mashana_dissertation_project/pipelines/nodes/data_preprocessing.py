@@ -1329,33 +1329,33 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
 def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):
     # Define the ANN model
     
-    # np.random.seed(42)
-    # random.seed(42)
-    # tensorflow.random.set_seed(42)
-    # os.environ['PYTHONHASHSEED'] = str(42)
-    # os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
 
     param_grid = {
-    'num_layers': [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-    'optimizer': ['sgd'],
-    'activation': ['tanh'],
-    'units_4': [100, 110, 120, 137.5],
-    'units_5': [60, 80, 100, 115],
-    'units_6': [35, 50, 65, 80],
-    'units_7': [25, 50, 72.5],
-    'units_8': [67.5, 85, 105],
-    'units_9': [35, 60, 90, 125],
-    'units_10': [60, 80, 100, 125],
-    'units_11': [77.5, 85, 100, 102.5],
-    'units_12': [27.5, 40, 52.5],
-    'units_13': [40, 60, 75, 90],
-    'units_14': [30, 35, 40],
-    'units_15': [67.5, 70, 72.5],
-    'units_16': [65],
-    'units_17': [85],
-    'units_18': [135]
-}
-    
+        'num_layers': [5, 8, 11, 14, 17, 19],
+        'optimizer': ['sgd'],
+        'activation': ['tanh'],
+        'units_4': [100, 137.5],
+        'units_5': [60, 115],
+        'units_6': [35, 80],
+        'units_7': [25, 72.5],
+        'units_8': [67.5, 105],
+        'units_9': [125],
+        'units_10': [125],
+        'units_11': [100],
+        'units_12': [52.5],
+        'units_13': [90],
+        'units_14': [40],
+        'units_15': [72.5],
+        'units_16': [65],
+        'units_17': [85],
+        'units_18': [135]
+    }
+  
     def create_model(num_layers, optimizer='sgd', activation='tanh', **kwargs):
         model = Sequential()
         for i in range(4, num_layers + 4):  
@@ -1444,6 +1444,85 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
         'best_model': best_model
     }
 
+def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validate, model_name):
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    # Fixed hyperparameters
+    fixed_hyperparameters = {
+        'num_layers': 15,
+        'optimizer': 'sgd',
+        'activation': 'tanh',
+        'units_4': 100,
+        'units_5': 115,
+        'units_6': 80,
+        'units_7': 72.5,
+        'units_8': 105,
+        'units_9': 125,
+        'units_10': 125,
+        'units_11': 100,
+        'units_12': 52.5,
+        'units_13': 90,
+        'units_14': 40,
+        'units_15': 72.5,
+        'units_16': 65,
+        'units_17': 85,
+        'units_18': 135
+    }
+
+    def create_fixed_model():
+        model = Sequential()
+        for i in range(4, fixed_hyperparameters['num_layers'] + 4):
+            units = fixed_hyperparameters.get(f'units_{i}', 50)
+            if i == 4:
+                model.add(Dense(units=units, activation=fixed_hyperparameters['activation'], input_shape=(X_train.shape[1],)))
+            else:
+                model.add(Dense(units=units, activation=fixed_hyperparameters['activation']))
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer=fixed_hyperparameters['optimizer'], loss='binary_crossentropy', metrics=['accuracy'])
+        return model
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train_scaled, y_train)
+
+    y_train_smote = y_train_smote.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1})
+
+    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
+
+    model = KerasClassifier(build_fn=create_fixed_model, epochs=100, verbose=1)
+    for train_index, test_index in skf.split(X_train_smote, y_train_smote):
+        X_train_fold, X_test_fold = X_train_smote[train_index], X_train_smote[test_index]
+        y_train_fold, y_test_fold = y_train_smote[train_index], y_train_smote[test_index]
+        model.fit(X_train_fold, y_train_fold)
+
+    print(model_name)
+    y_pred_probs = model.predict(X_validate_scaled).ravel()
+    predictions = np.round(y_pred_probs)
+    accuracy = accuracy_score(y_validate, predictions)
+    auc = roc_auc_score(y_validate, y_pred_probs)
+    f1 = f1_score(y_validate, predictions)
+    precision = precision_score(y_validate, predictions)
+    recall = recall_score(y_validate, predictions)
+
+    # Return results
+    return {
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
+        },
+        'model': model
+    }
 
 
 def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
@@ -1842,6 +1921,16 @@ def print_auc_tf(model, X_test, y_test):
     return roc_auc
 
 
+def auc_scorer(y_true, y_pred_probas):
+    """
+    Compute AUC score from predictions.
+    """
+    roc_auc = roc_auc_score(y_true, y_pred_probas)
+    return roc_auc
+
+
+
+
 #### Sampling
 
 def smote_oversample_minority_class(X_train, y_train):
@@ -1852,9 +1941,8 @@ def smote_oversample_minority_class(X_train, y_train):
 
 
 
-
 accuracy_scorer = make_scorer(calculate_accuracy)
-auc_scorer = make_scorer(print_auc, needs_proba=True, needs_threshold=False)
+auc_scorer = make_scorer(auc_scorer, needs_proba=True)
 f1_scorer = make_scorer(print_and_return_f1_score)
 precision_scorer = make_scorer(print_and_return_precision)
 recall_scorer = make_scorer(print_and_return_recall)

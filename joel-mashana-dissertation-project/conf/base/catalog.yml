@@ -541,6 +541,9 @@ ann_model_grid_search_best_params:
   versioned: true 
 
 
+
+
+
 ###SHAP
 
 decision_tree_best_hyperparameters_shap_values:
@@ -553,6 +556,10 @@ ann_best_hyperparameters:
     filepath: data/07_model_output/ann_best_hyperparameters.csv
     versioned: true
 
+ann_model_best_hyperparameters_shap:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/ann_model_grid_search_best_hyperparameters_shap.pkl
+  versioned: true 
 
 ## Place holder 
 
