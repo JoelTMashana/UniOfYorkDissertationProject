@@ -1,11 +1,11 @@
 import pytest
 import pandas as pd
-from joel_mashana_dissertation_project.pipelines.nodes.data_preprocessing import filter_data_on_supplychain_finance
+from joel_mashana_dissertation_project.pipelines.nodes.data_preprocessing import (filter_data_on_supplychain_finance, create_period_column)
 
 #AAA
 
 def test_filter_data_on_supplychain_finance():
-    
+
     # Arrange
     sample_data = {
         'Start date': ['29/04/2021', '15/06/2021', '20/07/2020', None],
@@ -28,3 +28,20 @@ def test_filter_data_on_supplychain_finance():
     assert all(pd.notnull(result['End date']))
     assert all(result['Start date'].dt.year == 2021)
     assert result.equals(result.sort_values(by='Start date'))
+
+
+def test_create_period_column():
+    sample_data = {
+        'Start date': ['2021-04-01', '2021-06-15'],
+        'End date': ['2021-12-31', '2021-07-20']
+    }
+    df = pd.DataFrame(sample_data)
+
+    result = create_period_column(df)
+
+    assert 'Period' in result.columns
+    assert all(result['Period'] == [
+        '2021 APR - 2021 DEC', 
+        '2021 JUN - 2021 JUL'
+    ]) 
+    assert result.columns[0] == 'Period'  
