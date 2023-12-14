@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from joel_mashana_dissertation_project.pipelines.nodes.data_preprocessing import (filter_data_on_supplychain_finance, create_period_column, extract_payment_periods,
-                                                                                  remove_redundant_columns
+                                                                                  remove_redundant_columns, anonymise_data, encode_column, align_columns
                                                                                   )
 
 #AAA
@@ -91,3 +91,52 @@ def test_remove_redundant_columns():
     assert 'Filing date' not in result.columns
     assert 'URL' not in result.columns
     assert 'Shortest (or only) standard payment period' in result.columns
+
+def test_anonymise_data():
+    sample_data = {
+        'Company': ['Company A', 'Company B'],
+        'Company number': ['12345', '67890'],
+        'Report Id': ['1', '2'],
+        'Shortest (or only) standard payment period': [30, 60]
+    }
+    df = pd.DataFrame(sample_data)
+
+    result = anonymise_data(df)
+
+    assert 'Company' not in result.columns
+    assert 'Company number' not in result.columns
+    assert 'Report Id' not in result.columns
+    assert 'Shortest (or only) standard payment period' in result.columns
+
+
+def test_encode_column():
+    sample_data = {
+        'Bool Column': [True, False, True, False],
+        'Str Bool Column': ['TRUE', 'FALSE', 'TRUE', 'FALSE'],
+        'True and NaN': ['TRUE', None, 'TRUE',  None],
+    }
+    df = pd.DataFrame(sample_data)
+    columns_to_encode = ['Bool Column', 'Str Bool Column', 'True and NaN']
+
+    result = encode_column(df, columns_to_encode)
+
+    assert all(result['Bool Column'] == [1, 0, 1, 0])
+    assert all(result['Str Bool Column'] == [1, 0, 1, 0])
+    assert all(result['True and NaN'] == [1, 0, 1, 0])
+
+
+def test_align_columns():
+  
+    sample_data = {
+        'Payment terms have changed': [0, 1, 0, 1],  
+        'Suppliers notified of changes': [pd.NA, 1, pd.NA, 0]  
+    }
+    df = pd.DataFrame(sample_data)
+
+
+    result = align_columns(df, 'Payment terms have changed', 'Suppliers notified of changes')
+
+    assert all(result['Payment terms have changed'] == [0, 1, 0, 1])
+    assert all(result['Suppliers notified of changes'] == [0, 1, 0, 0] )
+
+
