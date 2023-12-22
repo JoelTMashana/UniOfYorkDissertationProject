@@ -456,7 +456,21 @@ def standard_scale_data(data, columns_to_exclude, target_column):
     return X_scaled_df
 
 
+# Smote
+def smote_oversample_minority_class(X_train, y_train):
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
 
+    return X_train_smote, y_train_smote
+
+
+# Scorers 
+
+accuracy_scorer = make_scorer(calculate_accuracy)
+auc_scorer = make_scorer(auc_scorer, needs_proba=True)
+f1_scorer = make_scorer(print_and_return_f1_score)
+precision_scorer = make_scorer(print_and_return_precision)
+recall_scorer = make_scorer(print_and_return_recall)
 
 
 
@@ -803,28 +817,8 @@ def main_split_train_test_validate(data, target_column, columns_to_exclude):
 
 
 
+# This code relates to the final models
 
-
-
-
-
-
-
-
-def split_train_test_validate_rfe(data, target_column, columns_to_exclude):
-    X = data
-    # X = data.drop(columns=[columns_to_exclude])
-    # X = data.drop(columns=[target_column])
-    y = data[target_column]
-    X = data.drop(columns=[columns_to_exclude, target_column]) # Check if made same mistake else where
-    assert 'Period' not in X.columns, "Error: 'Period' column still exists in the dataset."
-    assert '% Invoices not paid within agreed terms' not in X.columns, "Error: '% Invoices not paid within agreed terms' column still exists in the dataset."
-
-    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
-
-    return X_train, X_validate, X_test, y_train, y_validate, y_test
 
 def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
@@ -851,6 +845,29 @@ def train_decision_tree(X_train, y_train, X_validate, y_validate, model_name, nu
     auc = print_auc(best_model, X_validate, y_validate)
 
     return best_model, pd.DataFrame({'accuracy': [accuracy]}), pd.DataFrame({'auc': [auc]}), pd.DataFrame({'report': [report]}), pd.DataFrame({'best params': [best_params]}) 
+
+
+
+
+
+
+
+
+
+def split_train_test_validate_rfe(data, target_column, columns_to_exclude): # doesnt seem to be used
+    X = data
+    # X = data.drop(columns=[columns_to_exclude])
+    # X = data.drop(columns=[target_column])
+    y = data[target_column]
+    X = data.drop(columns=[columns_to_exclude, target_column]) # Check if made same mistake else where
+    assert 'Period' not in X.columns, "Error: 'Period' column still exists in the dataset."
+    assert '% Invoices not paid within agreed terms' not in X.columns, "Error: '% Invoices not paid within agreed terms' column still exists in the dataset."
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    return X_train, X_validate, X_test, y_train, y_validate, y_test
 
 
 def get_hyperparameter_ranges(random_search, top_percentage=0.2):
@@ -1934,19 +1951,6 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
 
 #### Sampling
 
-def smote_oversample_minority_class(X_train, y_train):
-    smote = SMOTE(random_state=42)
-    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
-
-    return X_train_smote, y_train_smote
-
-
-
-accuracy_scorer = make_scorer(calculate_accuracy)
-auc_scorer = make_scorer(auc_scorer, needs_proba=True)
-f1_scorer = make_scorer(print_and_return_f1_score)
-precision_scorer = make_scorer(print_and_return_precision)
-recall_scorer = make_scorer(print_and_return_recall)
 
 def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth): # Main function
     results = []
