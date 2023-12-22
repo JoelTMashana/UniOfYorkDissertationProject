@@ -463,6 +463,315 @@ def standard_scale_data(data, columns_to_exclude, target_column):
 # ###### ML Algorithms
 
 
+# This code relates to the base models, Buyer Data only 
+
+def split_train_test_validate(data, target_column):
+    X = data
+    y = data[target_column]
+    X = data.drop(columns=[target_column])
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    return X_train, X_validate, X_test, y_train, y_validate, y_test
+
+
+# This code relates to the base models, Buyer Data only smote and scaled
+
+def split_train_test_validate_smote_applied(data, target_column, columns_to_exclude):
+    X = data.drop(columns=[columns_to_exclude, target_column]) 
+    y = data[target_column]
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
+
+    smote = SMOTE(random_state=42)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
+    return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
+
+
+def train_decision_tree_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+    
+    # # Drop excluded columns
+    # X_train = X_train.drop(columns=exclude_column)
+    # X_validate = X_validate.drop(columns=exclude_column)
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    assert 'Period' not in X_train.columns, "Period Column should not be in the training set"
+    assert 'Period' not in X_validate.columns, "Period Column should not be in the validation set"
+
+    decision_tree = DecisionTreeClassifier(random_state=42)
+
+    decision_tree.fit(X_train_scaled, y_train)
+
+
+    predictions = decision_tree.predict(X_validate_scaled)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(decision_tree, X_validate_scaled, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    report = store_and_print_classification_report(y_validate, predictions)
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    model = Sequential([
+        Dense(30, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+        Dense(16, activation='relu'),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+    
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+    model.fit(X_train_scaled, y_train, epochs=10, batch_size=64)
+
+    y_pred_probs = model.predict(X_validate_scaled).ravel()
+    predictions = np.round(y_pred_probs)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf(model, X_validate_scaled, y_validate)
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+def train_svm_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
+
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_validate_scaled = scaler.transform(X_validate)
+
+    svm_model = SVC(kernel='linear', probability=True)    
+    svm_model.fit(X_train_scaled , y_train)
+    predictions = svm_model.predict(X_validate_scaled)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc( svm_model, X_validate_scaled, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    print("Confusion Matrix:\n", confusion_matrix_values)
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+# This code relates to the random train test splits, Buyer Data only
+
+def split_train_test_validate_smote_applied_varied_splits(data, target_column, columns_to_exclude, split_num):
+    X = data.drop(columns=[columns_to_exclude, target_column]) 
+    y = data[target_column]
+
+    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=split_num)
+    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=split_num)  
+
+    smote = SMOTE(random_state=split_num)
+    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
+
+    return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
+
+# The functions are reused
+# train_decision_tree_experimental_scaled
+# train_svm_experimental_scaled
+# train_ann_experimental_scaled
+
+
+# This code relates to buyer data only smote and scaling applied experiments 
+
+# Thse functions are reused 
+# split_train_test_validate_smote_applied
+# train_decision_tree_experimental_scaled
+# train_svm_experimental_scaled
+# train_ann_experimental_scaled
+
+
+# This code relates to Pilot Study - Buyer and GDP data combined 
+
+
+def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_validate, model_name, number_of_features_to_select, exclude_column):
+    X_train = X_train.drop(columns=exclude_column)
+    X_validate = X_validate.drop(columns=exclude_column)
+    
+    logistic_regression_model = LogisticRegression(random_state=42)
+
+    # RFE
+    rfe = RFE(estimator=logistic_regression_model, n_features_to_select=number_of_features_to_select)
+    rfe.fit(X_train, y_train)
+
+    X_train_rfe = X_train.iloc[:, rfe.support_]
+    X_validate_rfe = X_validate.iloc[:, rfe.support_]
+
+    # logistic_regression_model.fit(X_train_rfe, y_train)
+
+    # predictions = logistic_regression_model.predict(X_validate_rfe)
+
+    # Apply SMOTE
+    smote = SMOTE(random_state=42)
+    X_train_rfe_smote, y_train_smote = smote.fit_resample(X_train_rfe, y_train)
+
+    logistic_regression_model.fit(X_train_rfe_smote, y_train_smote)
+    predictions = logistic_regression_model.predict(X_validate_rfe)
+
+    # Identifying selected features
+    selected_features = pd.DataFrame({
+        'Feature': X_train.columns[rfe.support_],
+        'Ranking': rfe.ranking_[rfe.support_]
+    })
+   
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf(logistic_regression_model, X_validate_rfe, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+    metrics = {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn
+    }
+    
+    return metrics, selected_features
+
+def train_ann_experimental_feature_selected(X_train, y_train, X_validate, y_validate, model_name, important_features):
+
+    ## Important features from Logistic regression rfe
+    important_features = important_features[important_features['Ranking'] == 1]['Feature'].tolist()
+
+    X_train = X_train[important_features]
+    X_validate = X_validate[important_features]
+
+    # dropped in split
+    # X_train = X_train.drop(columns=exclude_column)
+    # X_validate = X_validate.drop(columns=exclude_column)
+
+    np.random.seed(42)
+    random.seed(42)
+    tensorflow.random.set_seed(42)
+    os.environ['PYTHONHASHSEED'] = str(42)
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+
+    model = Sequential([
+        Dense(30, activation='relu', input_shape=(X_train.shape[1],)),
+        Dense(16, activation='relu'),
+        Dense(1, activation='sigmoid')  # Binary
+    ])
+    
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+
+    # For binary cross entropy, may need to change labels in pre processing
+    y_train = y_train.replace({1: 0, 2: 1})
+    y_validate = y_validate.replace({1: 0, 2: 1}) 
+
+    model.fit( X_train, y_train, epochs=10, batch_size=64)
+
+    y_pred_probs = model.predict(X_validate).ravel()
+    predictions = np.round(y_pred_probs)
+
+    print_model_name(model_name)
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc_tf( model, X_validate, y_validate)
+
+    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    tn, fp, fn, tp = confusion_matrix_values.ravel()
+
+
+    return {
+        'accuracy': accuracy,
+        'auc': auc,
+        'f1_score': f1,
+        'precision': precision,
+        'recall': recall,
+        'confusion_matrix_tp': tp,
+        'confusion_matrix_tn': tn,
+        'confusion_matrix_fp': fp,
+        'confusion_matrix_fn': fn,
+    }
+
+
+
 def main_split_train_test_validate(data, target_column, columns_to_exclude):
     # Initial number of columns
     initial_number_of_columns = data.shape[1]
@@ -495,46 +804,11 @@ def main_split_train_test_validate(data, target_column, columns_to_exclude):
 
 
 
-def split_train_test_validate(data, target_column):
-    X = data
-    y = data[target_column]
-    X = data.drop(columns=[target_column])
-
-    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
-
-    return X_train, X_validate, X_test, y_train, y_validate, y_test
 
 
 
 
 
-def split_train_test_validate_smote_applied(data, target_column, columns_to_exclude):
-    X = data.drop(columns=[columns_to_exclude, target_column]) 
-    y = data[target_column]
-
-    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=42)  
-
-    smote = SMOTE(random_state=42)
-    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
-
-    return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
-
-
-def split_train_test_validate_smote_applied_varied_splits(data, target_column, columns_to_exclude, split_num):
-    X = data.drop(columns=[columns_to_exclude, target_column]) 
-    y = data[target_column]
-
-    X_train_temp, X_test, y_train_temp, y_test = train_test_split(X, y, test_size=0.2, random_state=split_num)
-    X_train, X_validate, y_train, y_validate = train_test_split(X_train_temp, y_train_temp, test_size=0.25, random_state=split_num)  
-
-    smote = SMOTE(random_state=split_num)
-    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
-
-    return X_train_smote, X_validate, X_test, y_train_smote, y_validate, y_test
 
 
 def split_train_test_validate_rfe(data, target_column, columns_to_exclude):
@@ -1570,252 +1844,6 @@ def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validat
     }
 
 
-def train_ann_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
-
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_validate_scaled = scaler.transform(X_validate)
-
-    np.random.seed(42)
-    random.seed(42)
-    tensorflow.random.set_seed(42)
-    os.environ['PYTHONHASHSEED'] = str(42)
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-
-    model = Sequential([
-        Dense(30, activation='relu', input_shape=(X_train_scaled.shape[1],)),
-        Dense(16, activation='relu'),
-        Dense(1, activation='sigmoid')  # Binary
-    ])
-    
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-    y_train = y_train.replace({1: 0, 2: 1})
-    y_validate = y_validate.replace({1: 0, 2: 1}) 
-
-    model.fit(X_train_scaled, y_train, epochs=10, batch_size=64)
-
-    y_pred_probs = model.predict(X_validate_scaled).ravel()
-    predictions = np.round(y_pred_probs)
-
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc_tf(model, X_validate_scaled, y_validate)
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-    return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn,
-    }
-
-
-
-def train_decision_tree_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
-    
-    # # Drop excluded columns
-    # X_train = X_train.drop(columns=exclude_column)
-    # X_validate = X_validate.drop(columns=exclude_column)
-
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_validate_scaled = scaler.transform(X_validate)
-
-    assert 'Period' not in X_train.columns, "Period Column should not be in the training set"
-    assert 'Period' not in X_validate.columns, "Period Column should not be in the validation set"
-
-    decision_tree = DecisionTreeClassifier(random_state=42)
-
-    decision_tree.fit(X_train_scaled, y_train)
-
-
-    predictions = decision_tree.predict(X_validate_scaled)
-
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc(decision_tree, X_validate_scaled, y_validate)
-
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-    report = store_and_print_classification_report(y_validate, predictions)
-    return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn,
-    }
-
-def train_svm_experimental_scaled(X_train, y_train, X_validate, y_validate, model_name):
-
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_validate_scaled = scaler.transform(X_validate)
-
-    svm_model = SVC(kernel='linear', probability=True)    
-    svm_model.fit(X_train_scaled , y_train)
-    predictions = svm_model.predict(X_validate_scaled)
-
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc( svm_model, X_validate_scaled, y_validate)
-
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-
-    print("Confusion Matrix:\n", confusion_matrix_values)
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-    return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn,
-    }
-
-
-def train_ann_experimental_feature_selected(X_train, y_train, X_validate, y_validate, model_name, important_features):
-
-    ## Important features from Logistic regression rfe
-    important_features = important_features[important_features['Ranking'] == 1]['Feature'].tolist()
-
-    X_train = X_train[important_features]
-    X_validate = X_validate[important_features]
-
-    # dropped in split
-    # X_train = X_train.drop(columns=exclude_column)
-    # X_validate = X_validate.drop(columns=exclude_column)
-
-    np.random.seed(42)
-    random.seed(42)
-    tensorflow.random.set_seed(42)
-    os.environ['PYTHONHASHSEED'] = str(42)
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-
-    model = Sequential([
-        Dense(30, activation='relu', input_shape=(X_train.shape[1],)),
-        Dense(16, activation='relu'),
-        Dense(1, activation='sigmoid')  # Binary
-    ])
-    
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
-
-    # For binary cross entropy, may need to change labels in pre processing
-    y_train = y_train.replace({1: 0, 2: 1})
-    y_validate = y_validate.replace({1: 0, 2: 1}) 
-
-    model.fit( X_train, y_train, epochs=10, batch_size=64)
-
-    y_pred_probs = model.predict(X_validate).ravel()
-    predictions = np.round(y_pred_probs)
-
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc_tf( model, X_validate, y_validate)
-
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-
-    return {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn,
-    }
-
-
-
-def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_validate, model_name, number_of_features_to_select, exclude_column):
-    X_train = X_train.drop(columns=exclude_column)
-    X_validate = X_validate.drop(columns=exclude_column)
-    
-    logistic_regression_model = LogisticRegression(random_state=42)
-
-    # RFE
-    rfe = RFE(estimator=logistic_regression_model, n_features_to_select=number_of_features_to_select)
-    rfe.fit(X_train, y_train)
-
-    X_train_rfe = X_train.iloc[:, rfe.support_]
-    X_validate_rfe = X_validate.iloc[:, rfe.support_]
-
-    # logistic_regression_model.fit(X_train_rfe, y_train)
-
-    # predictions = logistic_regression_model.predict(X_validate_rfe)
-
-    # Apply SMOTE
-    smote = SMOTE(random_state=42)
-    X_train_rfe_smote, y_train_smote = smote.fit_resample(X_train_rfe, y_train)
-
-    logistic_regression_model.fit(X_train_rfe_smote, y_train_smote)
-    predictions = logistic_regression_model.predict(X_validate_rfe)
-
-    # Identifying selected features
-    selected_features = pd.DataFrame({
-        'Feature': X_train.columns[rfe.support_],
-        'Ranking': rfe.ranking_[rfe.support_]
-    })
-   
-    print_model_name(model_name)
-    accuracy = calculate_accuracy(y_validate, predictions)
-    auc = print_auc_tf(logistic_regression_model, X_validate_rfe, y_validate)
-
-    confusion_matrix_values = print_and_return_confusion_matrix(y_validate, predictions)
-    f1 = print_and_return_f1_score(y_validate, predictions)
-    precision = print_and_return_precision(y_validate, predictions)
-    recall = print_and_return_recall(y_validate, predictions)
-
-    tn, fp, fn, tp = confusion_matrix_values.ravel()
-
-    metrics = {
-        'accuracy': accuracy,
-        'auc': auc,
-        'f1_score': f1,
-        'precision': precision,
-        'recall': recall,
-        'confusion_matrix_tp': tp,
-        'confusion_matrix_tn': tn,
-        'confusion_matrix_fp': fp,
-        'confusion_matrix_fn': fn
-    }
-    
-    return metrics, selected_features
 
 
 ### Interpretability ###################################################
