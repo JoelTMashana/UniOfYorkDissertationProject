@@ -812,7 +812,8 @@ def create_pipeline(**kwargs):
 
         #    apply_principle_component_analysis_node,
         #    split_data_train_test_validate_node,
-
+                                    ## this isnt correct, some of these functions in the final models need to be rep
+                                    ## replaced with the optimal hyperparams functions 
         #    ### Final Models
         #    execute_decision_tree_node,
         #    smote_oversample_minority_class_node,
