@@ -61,6 +61,81 @@ from sklearn.model_selection import cross_validate
 
 
 
+
+
+
+
+
+### Evaluation ##########################################################
+
+def print_model_name(model_name):
+    print(f"Evaluation Metrics: {model_name}")
+
+def calculate_accuracy(y_test, y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy}")
+    return accuracy
+
+def store_and_print_classification_report(y_test, y_pred):
+    report = classification_report(y_test, y_pred)
+    print(f"Classification Report:\n{report}")
+    return report
+
+def print_and_return_confusion_matrix(y_test, y_pred):
+    matrix = confusion_matrix(y_test, y_pred)
+    print(f"Confusion Matrix:\n{matrix}")
+    return matrix
+
+def print_and_return_f1_score(y_test, y_pred):
+    f1 = f1_score(y_test, y_pred)
+    print(f"F1 Score: {f1}")
+    return f1
+
+def print_and_return_precision(y_test, y_pred):
+    precision = precision_score(y_test, y_pred)
+    print(f"Precision: {precision}")
+    return precision
+
+def print_and_return_recall(y_test, y_pred):
+    recall = recall_score(y_test, y_pred)
+    print(f"Recall: {recall}")
+    return recall
+
+def print_auc(model, X_test, y_test):
+    """
+    Prints the AUC for the given model and test data.
+    """
+    # Probabilities for the positive class
+    probas = model.predict_proba(X_test)[:, 1]
+
+    roc_auc = roc_auc_score(y_test, probas)
+
+    print(f"AUC: {roc_auc}")
+    return roc_auc
+
+def print_auc_tf(model, X_test, y_test):
+    """
+    Prints the AUC for the given model and test data.
+    """
+    # Probabilities for the positive class
+    probas = model.predict(X_test).ravel()
+
+    roc_auc = roc_auc_score(y_test, probas)
+
+    print(f"AUC: {roc_auc}")
+    return roc_auc
+
+def auc_scorer(y_true, y_pred_probas):
+    """
+    Compute AUC score from predictions.
+    """
+    roc_auc = roc_auc_score(y_true, y_pred_probas)
+    return roc_auc
+
+
+
+# Data Preprocessing Functions
+
 def filter_rows_based_on_conditions(df, conditions):
     """
     Filter rows in a dataframe based on the given conditions.
@@ -97,8 +172,6 @@ def filter_data_on_supplychain_finance(data, year):
     else:
         print("Not all rows have 'Supply-chain financing offered' set to True")
         return None 
-
-
 
 def extract_payment_periods(data):
     # Need to consider flattening and asserting that all periods are unique
@@ -178,17 +251,11 @@ def align_columns(data, column_one, column_two):
     data.loc[mask, column_two] = 0
     return data
 
-
-
-
-### code related to the inflation rates 
+# code related to the inflation rates 
 def convert_date_format(df, column_name, format='%d-%b-%y'):
     df[column_name] = pd.to_datetime(df[column_name], format=format)
     return df
 
-
-#### Commented out in pipenline therefore not in use for now
-# start_date='2017-01-01'
 def prepare_inflation_data(data, start_date='2017-01-01'):
     data['Date Changed'] = pd.to_datetime(data['Date Changed'], format='%d-%b-%y')
 
@@ -204,11 +271,7 @@ def prepare_inflation_data(data, start_date='2017-01-01'):
     
     monthly_data['Date Changed'] = monthly_data['Date Changed'].dt.strftime('%Y-%b').str.upper()
 
-
-    # print ('Monthly Data ')
-    # print(monthly_data)
     return monthly_data
-
 
 def flatten_periods(periods):
     flat_data = [period[1:-1].replace(", ", " - ") for period_list in periods.values() for period in period_list]
@@ -224,16 +287,11 @@ def get_average_inflation_for_periods(data, periods):
     print(periods_flattened)
     mean_rates = {}
     print(data.columns)
+
     for period in periods_flattened['Period']:
         start_date, end_date = period.split(" - ")
-        start_date = pd.Timestamp(start_date) # Do i need timestamp??
+        start_date = pd.Timestamp(start_date) 
         end_date = pd.Timestamp(end_date)
-
-        ## Must verify this logic and ensure that it is actually getting means for correct periods
-        ## to me looks like its not actually comparing the period but instead date col only has one date
-        ## possibly just the start date.
-        ## Need to print or output the inflation df being used to verify.
-        ## Print mean rates dict too to see what it looks like.
         mask = (data["Date Changed"] >= start_date) & (data["Date Changed"] <= end_date)
         filtered_data = data[mask]
         
@@ -244,7 +302,6 @@ def get_average_inflation_for_periods(data, periods):
     return mean_rates
 
 
-## Related to GDP 
 def gdp_remove_headers(data):
 
     # Rename 'Title' column to 'Date'
@@ -256,14 +313,10 @@ def gdp_remove_headers(data):
 
     return data_cleaned
 
-
-
 def calculate_gdp_averages_for_period(data, start_date, end_date):
     data['Date'] = pd.to_datetime(data['Date'], format='%Y %b')
     
-    period_data = data[(data['Date'] >= start_date) & (data['Date'] <= end_date)]
-    
-    # Calculate the average 
+    period_data = data[(data['Date'] >= start_date) & (data['Date'] <= end_date)] 
     averages = period_data.mean().drop('Date') 
     
     return averages
@@ -285,14 +338,10 @@ def process_gdp_averages(data, payment_periods):
     print(averages_df)
     return averages_df
 
-
-## Concerning data combination
-
 def combine_datasets(payment_practices, gdp_averages):
     combined_df = pd.merge(payment_practices, gdp_averages, on="Period", how="left")
 
     return combined_df
-
 
 def convert_float_columns_to_int(data):
     """
@@ -303,10 +352,7 @@ def convert_float_columns_to_int(data):
             data[column] = data[column].astype(pd.Int64Dtype())
     return data
 
-
-
-
-### Handling missing values 
+# Handling missing values 
 
 def mean_imputation(data, exclude_column):
     data_to_impute = data.drop(columns=[exclude_column])
@@ -324,12 +370,6 @@ def mean_imputation(data, exclude_column):
 
     return imputed_data
 
-
-# Consider using K neighbours for 
-
-
-
-## Handling Outliers 
 
 def robust_scale_column(data, column_name):
     """
@@ -351,7 +391,6 @@ def robust_scale_column(data, column_name):
 
     return data
 
-
 # Related to creating the target variable
 
 def find_optimal_clusters(data, column_to_cluster):
@@ -363,16 +402,14 @@ def find_optimal_clusters(data, column_to_cluster):
 
     return visualiser.elbow_value_
 
-
 def perform_kmeans_clustering(data, column_to_cluster):
     optimal_number_of_clusters = find_optimal_clusters(data,  column_to_cluster)
     kmeans = KMeans(n_clusters=optimal_number_of_clusters, random_state=0)
     data['Clusters'] = kmeans.fit_predict(data[[column_to_cluster]])
 
-    data['Risk Level'] = kmeans.labels_ + 1 # assign risk levels, account for 0 index
+    data['Risk Level'] = kmeans.labels_ + 1 # Assign risk levels, account for 0 index
     data = data.drop(['Clusters', '% Invoices not paid within agreed terms'], axis=1)
 
-    
     assert 'Risk Level' in data.columns, "Risk Level column does not exist."
     assert 'Clusters' not in data.columns, "Clusters column should not exist after dropping it."
     assert '% Invoices not paid within agreed terms' not in data.columns, "Error: '% Invoices not paid within agreed terms' column still exists in the dataset."
@@ -383,7 +420,7 @@ def perform_kmeans_clustering(data, column_to_cluster):
     return data
 
 
-### Dimensionality reduction 
+# Dimensionality reduction 
 
 def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
     X = data.drop(columns=[target_column])
@@ -402,9 +439,6 @@ def scale_and_apply_pca(data, n_components, columns_to_exclude, target_column):
     
     return principal_components
 
-
-#### Scale 
-
 def standard_scale_data(data, columns_to_exclude, target_column):
     # X = data.drop(columns=[target_column] + columns_to_exclude)
     X = data.drop(columns=[target_column])
@@ -420,6 +454,11 @@ def standard_scale_data(data, columns_to_exclude, target_column):
     X_scaled_df[target_column] = y
 
     return X_scaled_df
+
+
+
+
+
 
 # ###### ML Algorithms
 
@@ -727,13 +766,16 @@ def get_hyperparameter_ranges_svm(random_search, top_percentage=0.2):
 def train_svm_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
    
     param_dist = {
-        'kernel': ['linear','sigmoid'],
-        'C': [0.1, 1, 10, 100, 1000],
+        'kernel': ['sigmoid', 'poly', 'rbf'], # Removed Linear because was causing slow convergence 
+        'C': [0.1, 1, 10, 100, 200, 400, 500, 600],
+        # 'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1, 10], Gamma is what was causing algorithm to not converge
+        'degree': [2, 3, 4, 5, 6]  
     }
     svm_model = SVC(probability=True)
     random_search = RandomizedSearchCV(svm_model, param_distributions=param_dist, 
                                     n_iter=number_of_iterations, cv=2, verbose=2, random_state=42, n_jobs=-1)
-    
+    # Did not crossvalidate at this stage due to issues with convergence
+    # with plans to cv at the grid search phase
     random_search.fit(X_train, y_train)
 
     best_params = random_search.best_params_
@@ -926,11 +968,11 @@ def train_logistic_regression_experimental(X_train, y_train, X_validate, y_valid
     }
 
 def train_svm_experimental(X_train, y_train, X_validate, y_validate, model_name, exclude_column):
-
+    # Default C is 1.0
     X_train = X_train.drop(columns=exclude_column)
     X_validate = X_validate.drop(columns=exclude_column)
 
-    svm_model = SVC(kernel='linear', probability=True)    
+    svm_model = SVC(kernel='linear', probability=True)   # Used linear to start off with a simple model
     svm_model.fit(X_train, y_train)
     predictions = svm_model.predict(X_validate)
 
@@ -1459,15 +1501,15 @@ def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validat
         'units_4': 100,
         'units_5': 115,
         'units_6': 80,
-        'units_7': 72.5,
+        'units_7': 73,
         'units_8': 105,
         'units_9': 125,
         'units_10': 125,
         'units_11': 100,
-        'units_12': 52.5,
+        'units_12': 53,
         'units_13': 90,
         'units_14': 40,
-        'units_15': 72.5,
+        'units_15': 73,
         'units_16': 65,
         'units_17': 85,
         'units_18': 135
@@ -1497,11 +1539,14 @@ def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validat
 
     skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     model = KerasClassifier(build_fn=create_fixed_model, epochs=100, verbose=1)
     for train_index, test_index in skf.split(X_train_smote, y_train_smote):
         X_train_fold, X_test_fold = X_train_smote[train_index], X_train_smote[test_index]
         y_train_fold, y_test_fold = y_train_smote[train_index], y_train_smote[test_index]
-        model.fit(X_train_fold, y_train_fold)
+        model.fit(X_train_fold, y_train_fold, 
+                  validation_data=(X_test_fold, y_test_fold),
+                  callbacks=[early_stopping])
 
     print(model_name)
     y_pred_probs = model.predict(X_validate_scaled).ravel()
@@ -1855,78 +1900,6 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
     }
 
 
-
-
-
-
-
-
-### Evaluation ##########################################################
-
-def print_model_name(model_name):
-    print(f"Evaluation Metrics: {model_name}")
-
-def calculate_accuracy(y_test, y_pred):
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Accuracy: {accuracy}")
-    return accuracy
-
-def store_and_print_classification_report(y_test, y_pred):
-    report = classification_report(y_test, y_pred)
-    print(f"Classification Report:\n{report}")
-    return report
-
-def print_and_return_confusion_matrix(y_test, y_pred):
-    matrix = confusion_matrix(y_test, y_pred)
-    print(f"Confusion Matrix:\n{matrix}")
-    return matrix
-
-def print_and_return_f1_score(y_test, y_pred):
-    f1 = f1_score(y_test, y_pred)
-    print(f"F1 Score: {f1}")
-    return f1
-
-def print_and_return_precision(y_test, y_pred):
-    precision = precision_score(y_test, y_pred)
-    print(f"Precision: {precision}")
-    return precision
-
-def print_and_return_recall(y_test, y_pred):
-    recall = recall_score(y_test, y_pred)
-    print(f"Recall: {recall}")
-    return recall
-
-def print_auc(model, X_test, y_test):
-    """
-    Prints the AUC for the given model and test data.
-    """
-    # Probabilities for the positive class
-    probas = model.predict_proba(X_test)[:, 1]
-
-    roc_auc = roc_auc_score(y_test, probas)
-
-    print(f"AUC: {roc_auc}")
-    return roc_auc
-
-def print_auc_tf(model, X_test, y_test):
-    """
-    Prints the AUC for the given model and test data.
-    """
-    # Probabilities for the positive class
-    probas = model.predict(X_test).ravel()
-
-    roc_auc = roc_auc_score(y_test, probas)
-
-    print(f"AUC: {roc_auc}")
-    return roc_auc
-
-
-def auc_scorer(y_true, y_pred_probas):
-    """
-    Compute AUC score from predictions.
-    """
-    roc_auc = roc_auc_score(y_true, y_pred_probas)
-    return roc_auc
 
 
 
