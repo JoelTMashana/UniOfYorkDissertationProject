@@ -12,7 +12,8 @@ from .nodes.data_preprocessing import (filter_data_on_supplychain_finance, extra
                                        train_ann_experimental_feature_selected, train_ann_experimental_scaled, train_decision_tree_experimental_scaled,
                                        train_svm_experimental_scaled, split_train_test_validate_smote_applied_varied_splits, main_split_train_test_validate,
                                        train_decision_tree_with_random_search, train_svm_with_random_search, train_ann_with_random_search,
-                                       train_decision_tree_with_grid_search, evaluate_decision_tree_depths, train_ann_with_grid_search, train_ann_with_fixed_hyperparameters
+                                       train_decision_tree_with_grid_search, evaluate_decision_tree_depths, train_ann_with_grid_search, train_ann_with_fixed_hyperparameters,
+                                       evaluate_and_return_final_decision_tree_model, train_svm_with_grid_search, evaluate_and_return_final_svm_model
                                        )
 def create_pipeline(**kwargs):
     
@@ -599,7 +600,7 @@ def create_pipeline(**kwargs):
             "target_column": "params:target",
             "columns_to_exclude": "params:columns_to_exclude"
         },
-        outputs= ["X_train_main","X_validate_main", " X_test_main", "y_train_main", "y_validate_main", "y_test_main"]
+        outputs= ["X_train_main","X_validate_main", "X_test_main", "y_train_main", "y_validate_main", "y_test_main"]
 
     )
 
@@ -740,6 +741,69 @@ def create_pipeline(**kwargs):
         name="ann_with_optimal_hyperparameters_node"
     )
 
+    run_final_decision_tree_node = node (
+        evaluate_and_return_final_decision_tree_model,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_test": "X_test_main",
+            "y_test": "y_test_main",
+            "model_name": "params:decision_tree",
+        },
+        outputs={
+            "metrics": "metrics",
+            "model": "decision_tree_final_model",
+        },
+        name="run_final_decision_tree_node"
+    )
+
+    find_best_hyperparameters_for_svm_node = node (
+        train_svm_with_grid_search,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_validate": "X_validate_main",
+            "y_validate": "y_validate_main",
+            "model_name": "params:svm",
+        },
+        outputs={
+            "metrics": "metrics",
+            "best_hyperparameters": "svm_best_hyperparameters_grid_search",
+            "best_model": 'svm_model_grid_search_best_params'
+        },
+        name="find_best_hyperparameters_for_svm_node"
+    )
+    svm_with_optimal_hyperparameters_node = node (
+        evaluate_and_return_final_svm_model,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_test": "X_test_main",
+            "y_test": "y_test_main",
+            "model_name": "params:svm",
+        },
+        outputs={
+            "metrics": "metrics",
+            "model": "svm_final_model",
+        },
+        name="svm_with_optimal_hyperparameters_node"
+    )
+    decision_tree_with_optimal_hyperparameters_node = node (
+        evaluate_and_return_final_decision_tree_model,
+        inputs={
+            "X_train": "X_train_main",
+            "y_train": "y_train_main",
+            "X_test": "X_test_main",
+            "y_test": "y_test_main",
+            "model_name": "params:decision_tree",
+        },
+        outputs={
+            "metrics": "metrics",
+            "model": "svm_final_model",
+        },
+        name="decision_tree_with_optimal_hyperparameters_node"
+    )
+
    
     return Pipeline(
         [ 
@@ -754,13 +818,17 @@ def create_pipeline(**kwargs):
            determine_and_assign_risk_levels_buyer_data_node,
            mean_imputation_node,
            train_test_validate_split_node,
+           run_final_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
         #    find_optimal_hyperparameter_ranges_for_svm_node,
         #    find_optimal_hyperparameter_ranges_for_ann_node,
         #    find_best_hyperparameters_for_decision_tree_node,
         #    analyse_effect_of_reducing_decision_tree_depth_node,
-            # find_best_hyperparameters_for_ann_node
+        #    find_best_hyperparameters_for_ann_node
         #    ann_with_optimal_hyperparameters_node
+            # find_best_hyperparameters_for_svm_node
+            # svm_with_optimal_hyperparameters_node
+            # decision_tree_with_optimal_hyperparameters_node
 
      
 

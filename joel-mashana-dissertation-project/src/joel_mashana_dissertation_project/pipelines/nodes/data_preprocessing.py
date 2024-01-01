@@ -43,6 +43,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.callbacks import EarlyStopping
 from scikeras.wrappers import KerasClassifier
+from tensorflow.keras.initializers import GlorotUniform
 
 # Hyperparameter Tuning
 import kerastuner as kt
@@ -147,7 +148,7 @@ def filter_data_from_given_year(df, year):
     return filtered_df
 
 def filter_data_on_supplychain_finance(data, year):
-    
+    print(f"Initial number of records: {len(data)}")
     # Convert 'Start date' and 'End date' columns to datetime format by inferring the format and coercing errors
     data['Start date'] = pd.to_datetime(data['Start date'], infer_datetime_format=True, errors='coerce')
     data['End date'] = pd.to_datetime(data['End date'], infer_datetime_format=True, errors='coerce')
@@ -168,6 +169,7 @@ def filter_data_on_supplychain_finance(data, year):
     if condition_met:
         sorted_data = filtered_data.sort_values(by='Start date')
         print("Data filtered such that 'Supply-chain financing offered' is True for each record")
+        print(f"Number of records after filtering by supply chain finance: {len(sorted_data)}")
         return sorted_data
     else:
         print("Not all rows have 'Supply-chain financing offered' set to True")
@@ -234,7 +236,6 @@ def encode_column(data, columns_to_encode):
         data[column_name] = data[column_name].apply(lambda x: 1 if x == True or x == 'TRUE' else (0 if x == False or x == 'FALSE' else x))
 
         # Handle circumstance where column is made up of TRUE or FALSE and empty cells
-        # -- assumption
         if data[column_name].isnull().all() or (data[column_name] == 0).all():
             data[column_name].fillna(1, inplace=True)
 
@@ -392,13 +393,18 @@ def robust_scale_column(data, column_name):
     return data
 
 # Related to creating the target variable
-
+from sklearn.metrics import silhouette_score
 def find_optimal_clusters(data, column_to_cluster):
     feature = data[[column_to_cluster]]
     model = KMeans(random_state=0)
-    visualiser = KElbowVisualizer(model, k=(2,10), metric='silhouette', timings=False) # May need to use metric for the actual algo too
+    visualiser = KElbowVisualizer(model, k=(2,10), metric='silhouette', timings=False) 
     visualiser.fit(feature)
     # visualiser.show()
+    optimal_clusters = visualiser.elbow_value_
+    silhouette_avg = silhouette_score(feature, visualiser.estimator.labels_)
+
+    print(f"Optimal number of clusters: {optimal_clusters}")
+    print(f"Average silhouette score for {optimal_clusters} clusters: {silhouette_avg}")
 
     return visualiser.elbow_value_
 
@@ -682,10 +688,6 @@ def train_logistic_regression_experimental_rfe(X_train, y_train, X_validate, y_v
     X_train_rfe = X_train.iloc[:, rfe.support_]
     X_validate_rfe = X_validate.iloc[:, rfe.support_]
 
-    # logistic_regression_model.fit(X_train_rfe, y_train)
-
-    # predictions = logistic_regression_model.predict(X_validate_rfe)
-
     # Apply SMOTE
     smote = SMOTE(random_state=42)
     X_train_rfe_smote, y_train_smote = smote.fit_resample(X_train_rfe, y_train)
@@ -800,6 +802,7 @@ def main_split_train_test_validate(data, target_column, columns_to_exclude):
     assert X_train.shape[1] ==  initial_number_of_columns - 2, "X_train should have one less column than the initial dataset"
     assert X_validate.shape[1] ==  initial_number_of_columns - 2, "X_validate should have one less column than the initial dataset"
     assert X_test.shape[1] ==  initial_number_of_columns - 2, "X_test should have one less column than the initial dataset"
+    assert X_test.shape[0] > 1, "X_test should have more than one row"
     
     assert 'Risk Level' not in X_train.columns, "Risk Level should not be in X_train"
     assert 'Risk Level' not in X_validate.columns, "Risk Level should not be in X_validate"
@@ -930,7 +933,6 @@ def get_hyperparameter_ranges(random_search, top_percentage=0.2):
 
 def train_decision_tree_with_random_search(X_train, y_train, X_validate, y_validate, model_name, number_of_iterations):
     
-    ## Still need to apply smote and standard scaling
     param_dist = {
         "max_depth": [3, 5, 10, 15, 20, None],
         "min_samples_split": range(2, 50),
@@ -1065,8 +1067,7 @@ def train_svm_with_random_search(X_train, y_train, X_validate, y_validate, model
     svm_model = SVC(probability=True)
     random_search = RandomizedSearchCV(svm_model, param_distributions=param_dist, 
                                     n_iter=number_of_iterations, cv=2, verbose=2, random_state=42, n_jobs=-1)
-    # Did not crossvalidate at this stage due to issues with convergence
-    # with plans to cv at the grid search phase
+
     random_search.fit(X_train, y_train)
 
     best_params = random_search.best_params_
@@ -1539,7 +1540,6 @@ def train_ann_with_random_search(X_train, y_train, X_validate, y_validate, model
         model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
         # model.batch_size = hp.Int('batch_size', min_value=16, max_value=128, step=16)
-
         return model
 
 
@@ -1777,6 +1777,7 @@ def train_ann_with_grid_search(X_train, y_train, X_validate, y_validate, model_n
         'best_model': best_model
     }
 
+
 def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validate, model_name):
     np.random.seed(42)
     random.seed(42)
@@ -1808,13 +1809,14 @@ def train_ann_with_fixed_hyperparameters(X_train, y_train, X_validate, y_validat
 
     def create_fixed_model():
         model = Sequential()
+        initialiser = GlorotUniform(seed=42)  # Xavier/Glorot initialisation
         for i in range(4, fixed_hyperparameters['num_layers'] + 4):
             units = fixed_hyperparameters.get(f'units_{i}', 50)
             if i == 4:
                 model.add(Dense(units=units, activation=fixed_hyperparameters['activation'], input_shape=(X_train.shape[1],)))
             else:
                 model.add(Dense(units=units, activation=fixed_hyperparameters['activation']))
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation='sigmoid', kernel_initializer=initialiser))
         model.compile(optimizer=fixed_hyperparameters['optimizer'], loss='binary_crossentropy', metrics=['accuracy'])
         return model
 
@@ -1947,9 +1949,83 @@ def train_decision_tree_with_grid_search(X_train, y_train, X_validate, y_validat
 
 
 
+def train_svm_with_grid_search(X_train, y_train, X_validate, y_validate, model_name):
+    stratified_k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+
+    #  grid
+    param_grid = {
+        'svc__C': [400, 600],  # Continuous hyperparameters
+        'svc__kernel': ['rbf']  # Discrete hyperparameters
+    }
+
+    pipeline = make_pipeline_imb(
+        StandardScaler(),
+        SMOTE(random_state=42),
+        SVC(probability=True, random_state=42)
+    )
+
+    grid_search = GridSearchCV(pipeline, param_grid=param_grid, cv=stratified_k_fold, scoring='accuracy', verbose=2, n_jobs=-1)
+
+    grid_search.fit(X_train, y_train)
+
+    best_params = grid_search.best_params_
+    best_model = grid_search.best_estimator_
+
+    predictions = best_model.predict(X_validate)
+
+    accuracy = calculate_accuracy(y_validate, predictions)
+    auc = print_auc(best_model, X_validate, y_validate)
+    f1 = print_and_return_f1_score(y_validate, predictions)
+    precision = print_and_return_precision(y_validate, predictions)
+    recall = print_and_return_recall(y_validate, predictions)
+
+    print(model_name)
+    print(f"Accuracy: {accuracy}, AUC: {auc}, F1 Score: {f1}, Precision: {precision}, Recall: {recall}")
+
+    return {
+        'best_model': best_model,
+        'best_hyperparameters': pd.DataFrame(best_params, index=[0]),
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
+        }
+    }
 
 
-#### Sampling
+def evaluate_and_return_final_svm_model(X_train, y_train, X_test, y_test, model_name):
+    pipeline = make_pipeline_imb(
+        StandardScaler(),
+        SMOTE(random_state=42),
+        SVC(C=600, kernel='rbf', probability=True, random_state=42)
+    )
+
+    pipeline.fit(X_train, y_train)
+
+    predictions = pipeline.predict(X_test)
+
+    print(model_name)
+    accuracy = calculate_accuracy(y_test, predictions)
+    auc = print_auc(pipeline, X_test, y_test)
+    f1 = print_and_return_f1_score(y_test, predictions)
+    precision = print_and_return_precision(y_test, predictions)
+    recall = print_and_return_recall(y_test, predictions)
+
+    # Extract the final SVM model from the pipeline
+    final_svm_model = pipeline.named_steps['svc']
+
+    return {
+        'metrics': {
+            'accuracy': accuracy,
+            'auc': auc,
+            'f1_score': f1,
+            'precision': precision,
+            'recall': recall
+        },
+        'model': final_svm_model,
+    }
 
 
 def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth): # Main function
@@ -1994,3 +2070,41 @@ def evaluate_decision_tree_depths(X_train, y_train, initial_max_depth, min_depth
         results_df = pd.DataFrame(results)
 
     return results_df
+
+
+### Final 
+
+def evaluate_and_return_final_decision_tree_model(X_train, y_train, X_test, y_test, model_name):
+    # Create and fit the pipeline
+    pipeline = make_pipeline_imb(
+        StandardScaler(),
+        SMOTE(random_state=42),
+        DecisionTreeClassifier(
+            criterion='entropy',
+            max_depth=6,  
+            min_samples_split=10,
+            min_samples_leaf=42,
+            random_state=42
+        )
+    )
+    pipeline.fit(X_train, y_train)
+
+    # Evaluate the model on the test set
+    y_pred = pipeline.predict(X_test)
+    
+    print('Model:', model_name)
+    test_results = {
+        'test_accuracy': calculate_accuracy(y_test, y_pred),
+        'test_auc': print_auc(pipeline, X_test, y_test),
+        'test_f1': print_and_return_f1_score(y_test, y_pred),
+        'test_precision': print_and_return_precision(y_test, y_pred),
+        'test_recall': print_and_return_recall(y_test, y_pred)
+    }
+
+    
+    return {
+        'metrics': test_results,
+        'model': pipeline
+    }
+
+

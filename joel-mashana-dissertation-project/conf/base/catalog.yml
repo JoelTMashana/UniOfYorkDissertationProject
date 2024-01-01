@@ -356,6 +356,18 @@ probit_model:
   versioned: true
 
 
+decision_tree_final_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/decision_tree_model.pkl
+  versioned: true
+
+svm_final_model:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/svm_model.pkl
+  versioned: true
+
+  
+
 # Model outputs ------------------------------------------------------
 decision_tree_performance_metric_accuracy:
   type: pandas.CSVDataSet
@@ -528,6 +540,11 @@ ann_best_hyperparameters_grid_search:
     filepath: data/07_model_output/ann_best_hyperparameters_grid_search.csv
     versioned: true
 
+svm_best_hyperparameters_grid_search:
+    type: pandas.CSVDataSet
+    filepath: data/07_model_output/svm_best_hyperparameters_grid_search.csv
+    versioned: true
+
 
 ### Final Models ----------------
 decision_tree_model_grid_search_best_params:
@@ -538,6 +555,11 @@ decision_tree_model_grid_search_best_params:
 ann_model_grid_search_best_params:
   type: pickle.PickleDataSet
   filepath: data/06_models/ann_model_grid_search_best_params.pkl
+  versioned: true 
+
+svm_model_grid_search_best_params:
+  type: pickle.PickleDataSet
+  filepath: data/06_models/svm_model_grid_search_best_params.pkl
   versioned: true 
 
 
