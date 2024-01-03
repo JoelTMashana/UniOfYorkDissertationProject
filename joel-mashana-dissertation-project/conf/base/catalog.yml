@@ -501,6 +501,42 @@ metrics:
   filepath: data/09_tracking/metrics.json
 
 
+metrics_decision_tree_random_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_final_decision_tree_random_search.json
+
+metrics_decision_tree_grid_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_decision_tree_grid_search.json
+
+metrics_final_decision_tree_depth_6:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_final_decision_tree_depth_6.json
+
+
+metrics_svm_random_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_svm_random_search.json
+
+metrics_svm_grid_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_svm_grid_search.json
+
+metrics_final_svm_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_final_svm_search.json
+
+
+metrics_ann_random_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_ann_random_search.json
+
+metrics_ann_grid_search:
+  type: tracking.MetricsDataSet
+  filepath: data/09_tracking/metrics_ann_grid_search.json
+
+
+
 
 
 ### Hyperparameter ranges

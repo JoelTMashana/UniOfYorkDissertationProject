@@ -635,7 +635,7 @@ def create_pipeline(**kwargs):
             "number_of_iterations": "params:number_of_iterations_randomised_search"
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_decision_tree_random_search",
             "continuous_params": "decision_tree_continuous_hyperparameters",
             "discrete_params": "decision_tree_discrete_hyperparameters"
         },
@@ -653,7 +653,7 @@ def create_pipeline(**kwargs):
             "number_of_iterations": "params:number_of_iterations_randomised_search_decision_tree"
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_svm_random_search",
             "continuous_params": "svm_continuous_hyperparameters",
             "discrete_params": "svm_discrete_hyperparameters"
         },
@@ -672,7 +672,7 @@ def create_pipeline(**kwargs):
 
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_ann_random_search",
             "best_hyperparameters": "ann_best_hyperparameters"
         },
         name="find_optimal_hyperparameter_ranges_for_ann_node"
@@ -688,7 +688,7 @@ def create_pipeline(**kwargs):
             "model_name": "params:decision_tree",
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_decision_tree_grid_search",
             "best_hyperparameters": "decision_tree_best_hyperparameters",
             "best_model": 'decision_tree_model_grid_search_best_params'
         },
@@ -708,22 +708,22 @@ def create_pipeline(**kwargs):
         name="analyse_effect_of_reducing_decision_tree_depth_node"
     )
 
-    find_best_hyperparameters_for_ann_node = node (
-        train_ann_with_grid_search,
-        inputs={
-            "X_train": "X_train_main",
-            "y_train": "y_train_main",
-            "X_validate": "X_validate_main",
-            "y_validate": "y_validate_main",
-            "model_name": "params:ann",
-        },
-        outputs={
-            "metrics": "metrics",
-            "best_hyperparameters": "ann_best_hyperparameters_grid_search",
-            "best_model": 'ann_model_grid_search_best_params'
-        },
-        name="find_best_hyperparameters_for_ann_node"
-    )
+    # find_best_hyperparameters_for_ann_node = node (
+    #     train_ann_with_grid_search,
+    #     inputs={
+    #         "X_train": "X_train_main",
+    #         "y_train": "y_train_main",
+    #         "X_validate": "X_validate_main",
+    #         "y_validate": "y_validate_main",
+    #         "model_name": "params:ann",
+    #     },
+    #     outputs={
+    #         "metrics": "metrics",
+    #         "best_hyperparameters": "ann_best_hyperparameters_grid_search",
+    #         "best_model": 'ann_model_grid_search_best_params'
+    #     },
+    #     name="find_best_hyperparameters_for_ann_node"
+    # )
 
     ann_with_optimal_hyperparameters_node = node (
         train_ann_with_grid_search,
@@ -735,7 +735,7 @@ def create_pipeline(**kwargs):
             "model_name": "params:ann",
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_ann_grid_search",
             "best_model": 'ann_model_grid_search_best_params'
         },
         name="ann_with_optimal_hyperparameters_node"
@@ -751,7 +751,7 @@ def create_pipeline(**kwargs):
             "model_name": "params:decision_tree",
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_final_decision_tree_depth_6",
             "model": "decision_tree_final_model",
         },
         name="run_final_decision_tree_node"
@@ -767,7 +767,7 @@ def create_pipeline(**kwargs):
             "model_name": "params:svm",
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_svm_grid_search",
             "best_hyperparameters": "svm_best_hyperparameters_grid_search",
             "best_model": 'svm_model_grid_search_best_params'
         },
@@ -783,26 +783,26 @@ def create_pipeline(**kwargs):
             "model_name": "params:svm",
         },
         outputs={
-            "metrics": "metrics",
+            "metrics": "metrics_final_svm_search",
             "model": "svm_final_model",
         },
         name="svm_with_optimal_hyperparameters_node"
     )
-    decision_tree_with_optimal_hyperparameters_node = node (
-        evaluate_and_return_final_decision_tree_model,
-        inputs={
-            "X_train": "X_train_main",
-            "y_train": "y_train_main",
-            "X_test": "X_test_main",
-            "y_test": "y_test_main",
-            "model_name": "params:decision_tree",
-        },
-        outputs={
-            "metrics": "metrics",
-            "model": "svm_final_model",
-        },
-        name="decision_tree_with_optimal_hyperparameters_node"
-    )
+    # decision_tree_with_optimal_hyperparameters_node = node (
+    #     evaluate_and_return_final_decision_tree_model,
+    #     inputs={
+    #         "X_train": "X_train_main",
+    #         "y_train": "y_train_main",
+    #         "X_test": "X_test_main",
+    #         "y_test": "y_test_main",
+    #         "model_name": "params:decision_tree",
+    #     },
+    #     outputs={
+    #         "metrics": "metrics",
+    #         "model": "decision_tree_final_model",
+    #     },
+    #     name="decision_tree_with_optimal_hyperparameters_node"
+    # )
 
    
     return Pipeline(
@@ -827,13 +827,11 @@ def create_pipeline(**kwargs):
            find_optimal_hyperparameter_ranges_for_decision_tree_node,
            find_optimal_hyperparameter_ranges_for_svm_node,
            find_optimal_hyperparameter_ranges_for_ann_node,
-           find_best_hyperparameters_for_decision_tree_node,
+           find_best_hyperparameters_for_decision_tree_node, 
            analyse_effect_of_reducing_decision_tree_depth_node,
-           find_best_hyperparameters_for_ann_node,
            ann_with_optimal_hyperparameters_node,
            find_best_hyperparameters_for_svm_node,
            svm_with_optimal_hyperparameters_node,
-           decision_tree_with_optimal_hyperparameters_node,
            run_final_decision_tree_node,
            
            # -------
