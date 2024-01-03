@@ -2,18 +2,6 @@
 
 # Experiments that need to be run 
 
-# 1. Comparison between the models with and without GDP Data.
-# 2. Comparison of the Models with and without PCA 
-# 3. Comparison of the models with and withtout Smote oversampling
-# 4. Comparison of a Regression vs Classification 
-# 5. Once above identified, comparision of the models with different train test  splits
-# 6. Once consistent preprocessing steps identified across all models. Hyperparameter tuning initially using 
-# random search and if time allows implement hill climbing, simulated annealing or genetic algorithm.
-# 7. If time allows comparison of models with and without outliers included.
-# 8. Consider comparing results when full dataset is used opposed to subset where scf offered == true.
-
-
-
 
 # full param grid for ann grid search 
 # param_grid = {
