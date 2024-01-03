@@ -807,8 +807,9 @@ def create_pipeline(**kwargs):
    
     return Pipeline(
         [ 
-           ## Main pipeline
-           # Can be ran sequentially 
+           ## Main pipeline Start
+            
+           # ------ Can be ran sequentially 
            filter_buyer_payment_practises_on_supply_chain_finance_node,
            create_period_column_node,
            extract_payment_periods_node,
@@ -819,24 +820,28 @@ def create_pipeline(**kwargs):
            determine_and_assign_risk_levels_buyer_data_node,
            mean_imputation_node,
            train_test_validate_split_node,
-           # Must be run one by one, kedro does not allow you to run multiple nodes that save results to 'metrics'
-
-        #    find_optimal_hyperparameter_ranges_for_decision_tree_node,
-        #    find_optimal_hyperparameter_ranges_for_svm_node,
-        #    find_optimal_hyperparameter_ranges_for_ann_node,
-        #    find_best_hyperparameters_for_decision_tree_node,
-        #    analyse_effect_of_reducing_decision_tree_depth_node,
-        #    find_best_hyperparameters_for_ann_node
-        #    ann_with_optimal_hyperparameters_node
-            # find_best_hyperparameters_for_svm_node
-            # svm_with_optimal_hyperparameters_node
-            # decision_tree_with_optimal_hyperparameters_node
-            # run_final_decision_tree_node,
-     
-
-        
-           # Can be ran sequentially 
+           # ------
            
+           # ------ Must be run one by one, kedro does not allow you to run multiple nodes that save results to 'metrics'
+
+           find_optimal_hyperparameter_ranges_for_decision_tree_node,
+           find_optimal_hyperparameter_ranges_for_svm_node,
+           find_optimal_hyperparameter_ranges_for_ann_node,
+           find_best_hyperparameters_for_decision_tree_node,
+           analyse_effect_of_reducing_decision_tree_depth_node,
+           find_best_hyperparameters_for_ann_node,
+           ann_with_optimal_hyperparameters_node,
+           find_best_hyperparameters_for_svm_node,
+           svm_with_optimal_hyperparameters_node,
+           decision_tree_with_optimal_hyperparameters_node,
+           run_final_decision_tree_node,
+           
+           # -------
+
+            ## Main pipeline End
+
+           # Can be ran sequentially 
+
            ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
 
         #    mean_imputation_for_experimental_data_node,
@@ -884,9 +889,7 @@ def create_pipeline(**kwargs):
 
         #    apply_principle_component_analysis_node,
         #    split_data_train_test_validate_node,
-                                    ## this isnt correct, some of these functions in the final models need to be rep
-                                    ## replaced with the optimal hyperparams functions 
-        #    ### Final Models
+
         #    execute_decision_tree_node,
         #    smote_oversample_minority_class_node,
         #    execute_logistic_regression_node,
