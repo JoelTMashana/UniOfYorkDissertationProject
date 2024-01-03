@@ -808,8 +808,6 @@ def create_pipeline(**kwargs):
     return Pipeline(
         [ 
            ## Main pipeline Start
-            
-           # ------ Can be ran sequentially 
            filter_buyer_payment_practises_on_supply_chain_finance_node,
            create_period_column_node,
            extract_payment_periods_node,
@@ -820,10 +818,7 @@ def create_pipeline(**kwargs):
            determine_and_assign_risk_levels_buyer_data_node,
            mean_imputation_node,
            train_test_validate_split_node,
-           # ------
-           
-           # ------ Must be run one by one, kedro does not allow you to run multiple nodes that save results to 'metrics'
-
+   
            find_optimal_hyperparameter_ranges_for_decision_tree_node,
            find_optimal_hyperparameter_ranges_for_svm_node,
            find_optimal_hyperparameter_ranges_for_ann_node,
@@ -833,12 +828,9 @@ def create_pipeline(**kwargs):
            find_best_hyperparameters_for_svm_node,
            svm_with_optimal_hyperparameters_node,
            run_final_decision_tree_node,
-           
-           # -------
+           ## Main pipeline End
 
-            ## Main pipeline End
-
-           # Can be ran sequentially 
+    
 
            ## Experimental nodes -- Buyer data only, smote applied and standard scaled various train test splits
 
